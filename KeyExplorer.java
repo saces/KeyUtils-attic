@@ -73,7 +73,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginThread
 			if (key != null && (key.trim().length() > 0)) {
 				FreenetURI furi = new FreenetURI(key);
 				ClientKey ck = (ClientKey) BaseClientKey.getBaseKey(furi);
-				ckb = m_pr.getNode().clientCore.realGetKey(ck, false, true, false);
+				ckb = m_pr.getNode().clientCore.realGetKey(ck, true, true, false);
 				ArrayBucket a = (ArrayBucket) ckb.decode(new ArrayBucketFactory(), 32 * 1024, false);
 				data = BucketTools.toByteArray(a);
 			}
