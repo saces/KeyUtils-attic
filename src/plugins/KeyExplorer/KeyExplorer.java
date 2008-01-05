@@ -177,13 +177,17 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginThread
 					if (md.isSingleFileRedirect()) {
 						metaBox.addChild("#", "Document type: SingleFileRedirect");
 						metaBox.addChild("%", "<BR />");
-						String sfrUri = md.getSingleTarget().toString();
-						metaBox.addChild("#", sfrUri);
-						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", "/?key="+sfrUri, "open"));
-						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key="+sfrUri, "explore"));
-						metaBox.addChild("%", "<BR />");
+						FreenetURI uri = md.getSingleTarget();
+						// TODO saces need a lesson in manifest structure?
+						if (uri != null) {
+							String sfrUri = md.getSingleTarget().toString();
+							metaBox.addChild("#", sfrUri);
+							metaBox.addChild("#", "\u00a0");
+							metaBox.addChild(new HTMLNode("a", "href", "/?key="+sfrUri, "open"));
+							metaBox.addChild("#", "\u00a0");
+							metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key="+sfrUri, "explore"));
+							metaBox.addChild("%", "<BR />");
+						}
 					}
 
 					if (md.isArchiveInternalRedirect()) {
