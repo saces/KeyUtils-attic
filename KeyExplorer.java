@@ -51,6 +51,11 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 	public void handle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) {
 
+		if (params == null) {
+			sendError(replysender, 0, "Got void message");
+			return;
+		}
+		
 		String command = params.get("Command");
 
 		if (command == null || command.trim().length() == 0) {
