@@ -11,7 +11,6 @@ import freenet.config.Config;
 import freenet.config.SubConfig;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
-import freenet.keys.ClientKeyBlock;
 import freenet.keys.FreenetURI;
 import freenet.node.LowLevelGetException;
 import freenet.pluginmanager.FredPlugin;
@@ -89,6 +88,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 				SimpleFieldSet sfs = new SimpleFieldSet(true);
 				sfs.putSingle("Identifier", identifier);
 				sfs.put("IsMetadata", getresult.isMetaData);
+				sfs.putSingle("Status", "DataFound");
 				replysender.send(sfs, getresult.data);
 				return;
 
@@ -96,7 +96,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 				sendError(replysender, 5, "malformed freenet uri");
 				return;
 			} catch (LowLevelGetException e) {
-				sendError(replysender, 6, "get failed" + e.toString());
+				sendError(replysender, 6, "Get failed: " + e.toString());
 				return;
 			}
 		} else
