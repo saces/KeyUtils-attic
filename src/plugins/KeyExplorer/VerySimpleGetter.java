@@ -34,16 +34,16 @@ public class VerySimpleGetter extends ClientRequester {
 	}
 
 	public boolean isFinished() {
-		Logger.error(this, "TODO", new Error("TODO"));
+		Logger.error(this, "TODO?", new Error("TODO?"));
 		return false;
 	}
 
 	public void notifyClients() {
-		Logger.error(this, "TODO", new Error("TODO"));
+		Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
 	public void onTransition(ClientGetState oldState, ClientGetState newState) {
-		Logger.error(this, "TODO", new Error("TODO"));
+		Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
 }

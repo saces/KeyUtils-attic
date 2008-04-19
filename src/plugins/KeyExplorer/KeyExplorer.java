@@ -12,6 +12,7 @@ import freenet.config.SubConfig;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
+import freenet.keys.USK;
 import freenet.node.LowLevelGetException;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
@@ -67,7 +68,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 			sfs.put("Pong", System.currentTimeMillis());
 			replysender.send(sfs);
 			return;
-		} else if ("Get".equals(command)) {
+		} 
+		
+		if ("Get".equals(command)) {
 
 			final String identifier = params.get("Identifier");
 			if (identifier == null || identifier.trim().length() == 0) {
@@ -83,13 +86,13 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 			try {
 				FreenetURI furi = new FreenetURI(uri);
-				GetResult getresult = simpleGet(furi);
+				GetResult getResult = simpleGet(furi);
 
 				SimpleFieldSet sfs = new SimpleFieldSet(true);
 				sfs.putSingle("Identifier", identifier);
-				sfs.put("IsMetadata", getresult.isMetaData);
+				sfs.put("IsMetadata", getResult.isMetaData);
 				sfs.putSingle("Status", "DataFound");
-				replysender.send(sfs, getresult.data);
+				replysender.send(sfs, getResult.data);
 				return;
 
 			} catch (MalformedURLException e) {
@@ -153,10 +156,17 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 		String error = null;
 		byte[] data = null;
 		GetResult getresult = null;
+		
+		FreenetURI furi = null;
 
 		try {
 			if (key != null && (key.trim().length() > 0)) {
-				FreenetURI furi = new FreenetURI(key);
+				furi = new FreenetURI(key);
+				if ("USK".equals(furi.getKeyType())) {
+					USK tempUSK = USK.create(furi);
+					ClientKey tempKey = tempUSK.getSSK();
+					furi = tempKey.getURI();
+				} 
 				getresult = simpleGet(furi);
 				data = BucketTools.toByteArray(getresult.data);
 			}
@@ -175,7 +185,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 		contentNode.addChild(createUriBox());
 
 		if (data != null) {
-			String title = "Key: " + key;
+			String title = "Key: " + furi.toString();
 			if (getresult.isMetaData)
 				title = title + "\u00a0(MetaData)";
 			HTMLNode dataBox2 = m_pm.getInfobox(title);
