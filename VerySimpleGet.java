@@ -36,7 +36,6 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 	public void onFailure(LowLevelGetException e, Object token, RequestScheduler sheduler) {
 		error = e;
 		finished = true;
-		Logger.error(this, "TODO", e);
 		synchronized(waiter)
 		{
 			waiter.notifyAll();
@@ -48,7 +47,6 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 		ismetadata = block.isMetadata();
 		if(data == null) return; // failed
 		finished = true;
-		Logger.error(this, "TODO", new Error("TODO"));
 		synchronized(waiter)
 		{
 			waiter.notifyAll();
@@ -66,7 +64,6 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 				// Ignore
 			}
 		}
-		Logger.error(this, "TODO", new Error("TODO"));
 		if(error != null) throw error;
 		return data;
 	}
