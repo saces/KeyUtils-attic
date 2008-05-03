@@ -96,7 +96,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 				return;
 
 			} catch (MalformedURLException e) {
-				sendError(replysender, 5, "malformed freenet uri");
+				sendError(replysender, 5, "Malformed freenet uri: "+e.getMessage());
 				return;
 			} catch (LowLevelGetException e) {
 				sendError(replysender, 6, "Get failed: " + e.toString());
@@ -129,7 +129,12 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 	}
 
 	private GetResult simpleGet(FreenetURI uri) throws MalformedURLException, LowLevelGetException {
-		ClientKey ck = (ClientKey) BaseClientKey.getBaseKey(uri);
+		ClientKey ck;
+		try {
+			ck = (ClientKey) BaseClientKey.getBaseKey(uri);
+		} catch (ClassCastException cce) {
+			throw new MalformedURLException("Not a supported freenet uri: "+uri);
+		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, m_pr.getNode().clientCore.requestStarters.chkFetchScheduler, m_pr
 				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, null);
 		VerySimpleGet vs = new VerySimpleGet(ck, 3, m_pr.getHLSimpleClient().getFetchContext(), vsg);
