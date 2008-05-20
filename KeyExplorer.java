@@ -14,6 +14,7 @@ import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
 import freenet.keys.USK;
 import freenet.node.LowLevelGetException;
+import freenet.node.RequestClient;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
 import freenet.pluginmanager.FredPluginHTTP;
@@ -136,7 +137,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 			throw new MalformedURLException("Not a supported freenet uri: "+uri);
 		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, m_pr.getNode().clientCore.requestStarters.chkFetchScheduler, m_pr
-				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, null);
+				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, new RequestClient() {});
 		VerySimpleGet vs = new VerySimpleGet(ck, 3, m_pr.getHLSimpleClient().getFetchContext(), vsg);
 		vs.schedule();
 		return new GetResult(vs.waitForCompletion(), vs.isMetadata());
