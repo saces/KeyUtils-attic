@@ -137,7 +137,10 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 			throw new MalformedURLException("Not a supported freenet uri: "+uri);
 		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, m_pr.getNode().clientCore.requestStarters.chkFetchScheduler, m_pr
-				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, new RequestClient() {});
+				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, new RequestClient() {
+					public boolean persistent() {
+						return false;
+					}});
 		VerySimpleGet vs = new VerySimpleGet(ck, 3, m_pr.getHLSimpleClient().getFetchContext(), vsg);
 		vs.schedule();
 		return new GetResult(vs.waitForCompletion(), vs.isMetadata());
