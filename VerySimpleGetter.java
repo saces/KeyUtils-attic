@@ -7,7 +7,6 @@ import freenet.client.async.ClientGetState;
 import freenet.client.async.ClientRequestScheduler;
 import freenet.client.async.ClientRequester;
 import freenet.keys.FreenetURI;
-import freenet.node.RequestClient;
 import freenet.support.Logger;
 
 /**
@@ -25,7 +24,7 @@ public class VerySimpleGetter extends ClientRequester {
 	 * @param client2 
 	 * 
 	 */
-	public VerySimpleGetter(short priorityclass, ClientRequestScheduler chkscheduler, ClientRequestScheduler sskscheduler, FreenetURI uri2, RequestClient client2) {
+	public VerySimpleGetter(short priorityclass, ClientRequestScheduler chkscheduler, ClientRequestScheduler sskscheduler, FreenetURI uri2, Object client2) {
 		super(priorityclass, chkscheduler, sskscheduler, client2);
 		uri = uri2;
 	}

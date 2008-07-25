@@ -14,11 +14,11 @@ import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
 import freenet.keys.USK;
 import freenet.node.LowLevelGetException;
-import freenet.node.RequestClient;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
 import freenet.pluginmanager.FredPluginHTTP;
 import freenet.pluginmanager.FredPluginThreadless;
+import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginHTTPException;
 import freenet.pluginmanager.PluginReplySender;
 import freenet.pluginmanager.PluginRespirator;
@@ -29,7 +29,7 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 
-public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, FredPluginThreadless {
+public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, FredPluginThreadless, FredPluginVersioned{
 
 	private PluginRespirator m_pr;
 	private PageMaker m_pm;
@@ -137,7 +137,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 			throw new MalformedURLException("Not a supported freenet uri: "+uri);
 		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, m_pr.getNode().clientCore.requestStarters.chkFetchScheduler, m_pr
-				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, new RequestClient() {
+				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, new Object() {
 					public boolean persistent() {
 						return false;
 					}});
@@ -343,5 +343,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 		HTMLNode errorBox = m_pm.getInfobox("infobox-alert", "ERROR");
 		errorBox.addChild("#", errmsg);
 		return errorBox;
+	}
+
+	public String getVersion() {
+		return "0.1 "+ Version.svnRevision;
 	}
 }
