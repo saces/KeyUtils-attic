@@ -29,7 +29,7 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 
-public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, FredPluginThreadless, FredPluginVersioned{
+public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, FredPluginThreadless, FredPluginVersioned {
 
 	private PluginRespirator m_pr;
 	private PageMaker m_pm;
@@ -346,6 +346,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 	}
 
 	public String getVersion() {
-		return "0.1 "+ Version.svnRevision;
+		return "0.1 r"+ Version.svnRevision;
 	}
 }
