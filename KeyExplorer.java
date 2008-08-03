@@ -340,6 +340,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 	}
 
 	public String getVersion() {
-		return "0.1 r"+ Version.svnRevision;
+		return "0.1.1 r"+ Version.svnRevision;
 	}
 }
