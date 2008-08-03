@@ -1,3 +1,6 @@
+/* This code is part of Freenet. It is distributed under the GNU General
+ * Public License, version 2 (or at your option any later version). See
+ * http://www.gnu.org/ for further details of the GPL. */
 package plugins.KeyExplorer;
 
 import java.io.IOException;
@@ -91,9 +94,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 				SimpleFieldSet sfs = new SimpleFieldSet(true);
 				sfs.putSingle("Identifier", identifier);
-				sfs.put("IsMetadata", getResult.isMetaData);
+				sfs.put("IsMetadata", getResult.isMetaData());
 				sfs.putSingle("Status", "DataFound");
-				replysender.send(sfs, getResult.data);
+				replysender.send(sfs, getResult.getData());
 				return;
 
 			} catch (MalformedURLException e) {
@@ -117,16 +120,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 	}
 
 	public void terminate() {
-	}
-
-	private class GetResult {
-		final Bucket data;
-		final boolean isMetaData;
-
-		GetResult(Bucket data2, boolean isMetaData2) {
-			data = data2;
-			isMetaData = isMetaData2;
-		}
 	}
 
 	private GetResult simpleGet(FreenetURI uri) throws MalformedURLException, LowLevelGetException {
@@ -177,7 +170,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 					furi = tempKey.getURI();
 				} 
 				getresult = simpleGet(furi);
-				data = BucketTools.toByteArray(getresult.data);
+				data = BucketTools.toByteArray(getresult.getData());
 			}
 		} catch (MalformedURLException e) {
 			error = "MalformedURL";
@@ -195,7 +188,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 		if (data != null) {
 			String title = "Key: " + furi.toString();
-			if (getresult.isMetaData)
+			if (getresult.isMetaData())
 				title = title + "\u00a0(MetaData)";
 			HTMLNode dataBox2 = m_pm.getInfobox(title);
 
@@ -241,7 +234,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 			error = null;
 
-			if (getresult.isMetaData) {
+			if (getresult.isMetaData()) {
 
 				Metadata md = null;
 				try {
