@@ -9,7 +9,7 @@ public class GetResult {
 	private final Bucket data;
 	private final boolean isMetaData;
 
-	GetResult(Bucket data2, boolean isMetaData2) {
+	public GetResult(Bucket data2, boolean isMetaData2) {
 		data = data2;
 		isMetaData = isMetaData2;
 	}
