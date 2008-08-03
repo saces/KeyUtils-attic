@@ -32,6 +32,10 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 
+/**
+ * @author saces
+ *
+ */
 public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, FredPluginThreadless, FredPluginVersioned {
 
 	private PluginRespirator m_pr;
@@ -130,10 +134,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 			throw new MalformedURLException("Not a supported freenet uri: "+uri);
 		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, m_pr.getNode().clientCore.requestStarters.chkFetchScheduler, m_pr
-				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, new Object() {
-					public boolean persistent() {
-						return false;
-					}});
+				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, new Object());
 		VerySimpleGet vs = new VerySimpleGet(ck, 3, m_pr.getHLSimpleClient().getFetchContext(), vsg);
 		vs.schedule();
 		return new GetResult(vs.waitForCompletion(), vs.isMetadata());
