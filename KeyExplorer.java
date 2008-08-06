@@ -3,10 +3,20 @@
  * http://www.gnu.org/ for further details of the GPL. */
 package plugins.KeyExplorer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import freenet.client.FetchContext;
+import freenet.client.FetchException;
+import freenet.client.FetchResult;
+import freenet.client.FetchWaiter;
+import freenet.client.HighLevelSimpleClient;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.clients.http.PageMaker;
@@ -45,6 +55,10 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
 		String uri = request.getParam("key");
+		String type = request.getParam("type");
+		if ("manifest".equals(type)) {
+			return makeManifestPage(uri);
+		}
 		return makeMainPage(uri);
 	}
 
@@ -270,9 +284,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 					if (md.isSingleFileRedirect()) {
 						metaBox.addChild("#", "Document type: SingleFileRedirect");
-						metaBox.addChild("%", "<BR />");
+						metaBox.addChild("#", "\u00a0");
 						FreenetURI uri = md.getSingleTarget();
-						// TODO saces need a lesson in manifest structure?
 						if (uri != null) {
 							String sfrUri = md.getSingleTarget().toString();
 							metaBox.addChild("#", sfrUri);
@@ -281,8 +294,10 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 							metaBox.addChild("#", "\u00a0");
 							metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + sfrUri,
 									"explore"));
-							metaBox.addChild("%", "<BR />");
+						} else {
+							metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));							
 						}
+						metaBox.addChild("%", "<BR />");
 					}
 
 					if (md.isArchiveInternalRedirect()) {
@@ -292,6 +307,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 					if (md.isArchiveManifest()) {
 						metaBox.addChild("#", "Document type: ArchiveManifest");
+						metaBox.addChild("#", "\u00a0");
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?type=manifest&key=" + furi,
+						"reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
 
@@ -320,6 +338,83 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 		return pageNode.generate();
 	}
+	
+	private String makeManifestPage(String key) {
+		HTMLNode pageNode = m_pm.getPageNode("KeyExplorer", null);
+		HTMLNode contentNode = m_pm.getContentNode(pageNode);
+
+		String error = null;
+		Metadata metadata = null;
+		
+		FreenetURI furi = null;
+
+		try {
+			furi = new FreenetURI(key);
+			if ("USK".equals(furi.getKeyType())) {
+				USK tempUSK = USK.create(furi);
+				ClientKey tempKey = tempUSK.getSSK();
+				furi = tempKey.getURI();
+			} 
+			metadata = manifestGet(furi);
+		} catch (MalformedURLException e) {
+			error = "MalformedURL";
+		} catch (FetchException e) {
+			error = "get failed";
+		} catch (IOException e) {
+			error = "io error";
+		} catch (MetadataParseException e) {
+			error = "MetadataParseException";
+		}
+
+		if (error != null) {
+			contentNode.addChild(createErrorBox(error));
+		}
+
+		contentNode.addChild(createUriBox());
+		
+		String title = "Key: " + furi.toString()  + "\u00a0(Manifest)";
+		HTMLNode listBox = m_pm.getInfobox(title);
+		contentNode.addChild(listBox);
+		
+		HashMap<String, Metadata> docs = metadata.getDocuments();
+
+		parseMetadata(listBox, docs, "", furi.toString());
+
+		return pageNode.generate();
+
+	}
+	
+	private void parseMetadata(HTMLNode htmlnode, HashMap<String, Metadata> docs, String prefix, String furi) {
+		Set s = docs.keySet();
+		Iterator i = s.iterator();
+		while (i.hasNext()) {
+			String name = (String) i.next();
+			Metadata md = docs.get(name);
+			String fname = prefix + name;
+			if (md.isArchiveInternalRedirect()) {
+				htmlnode.addChild("#", "(container)\u00a0");
+				htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
+				htmlnode.addChild("%", "<BR />");
+	        } else if (md.isSingleFileRedirect()) {
+	        	htmlnode.addChild("#", "(extern)\u00a0");
+	        	htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
+	        	htmlnode.addChild("#", "\u00a0");
+	        	htmlnode.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(),
+				"explore"));
+				htmlnode.addChild("%", "<BR />");
+	        } else if (md.isSplitfile()) {
+	        	htmlnode.addChild("#", "(extern, splitf)\u00a0");
+	        	htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
+				htmlnode.addChild("%", "<BR />");
+	        } else {
+	        	htmlnode.addChild("#", "(dir)\u00a0");
+	        	htmlnode.addChild("#", fname);
+				htmlnode.addChild("%", "<BR />");
+	        	parseMetadata(htmlnode, md.getDocuments(), prefix + fname + "/", furi);
+	        }
+       }
+		
+	}
 
 	private HTMLNode createUriBox() {
 		HTMLNode browseBox = m_pm.getInfobox("Explore a freenet key");
@@ -342,4 +437,35 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 	public String getVersion() {
 		return "0.1.1 r"+ Version.svnRevision;
 	}
+	
+	private Metadata manifestGet(FreenetURI uri) throws FetchException, MetadataParseException, IOException{
+		HighLevelSimpleClient hlsc = m_pr.getHLSimpleClient();
+		FetchContext fctx = hlsc.getFetchContext();
+		fctx.returnZIPManifests = true;
+		FetchWaiter fw = new FetchWaiter();
+		hlsc.fetch(uri, -1, this, fw, fctx);
+		FetchResult fr = fw.waitForCompletion();
+		ZipInputStream zis = new ZipInputStream(fr.asBucket().getInputStream());
+		ZipEntry entry;
+		ByteArrayOutputStream bos;
+		while(true) {
+			entry = zis.getNextEntry();
+			if(entry == null) break;
+			if(entry.isDirectory()) continue;
+			String name = entry.getName();
+			if(".metadata".equals(name)) {
+				byte[] buf = new byte[32768];
+				bos = new ByteArrayOutputStream();
+				// Read the element
+				int readBytes;
+				while((readBytes = zis.read(buf)) > 0) {
+					bos.write(buf, 0, readBytes);
+				}
+				bos.close();
+				return Metadata.construct(bos.toByteArray());
+			}
+		}
+		throw new FetchException(200, "impossible? no metadata in archive " + uri);
+	}
+
 }
