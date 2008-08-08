@@ -41,7 +41,7 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 			Logger.minor(this, "onFailure( " + e + " , ...)", e);
 
 		if (!(isFatalError(e.code))) {
-			if (retry(sched)) {
+			if (retry(sched, getContext().executor)) {
 				if (logMINOR)
 					Logger.minor(this, "Retrying");
 				return;
