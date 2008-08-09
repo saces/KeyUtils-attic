@@ -56,8 +56,11 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
 		String uri = request.getParam("key");
 		String type = request.getParam("type");
-		if ("manifest".equals(type)) {
-			return makeManifestPage(uri);
+		if ("zipmanifest".equals(type)) {
+			return makeManifestPage(uri, false);
+		}
+		if ("simplemanifest".equals(type)) {
+			return makeManifestPage(uri, true);
 		}
 		return makeMainPage(uri);
 	}
@@ -269,6 +272,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 
 					if (md.isSimpleManifest()) {
 						metaBox.addChild("#", "Document type: SimpleManifest");
+						metaBox.addChild("#", "\u00a0");
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?type=simplemanifest&key=" + furi,
+						"reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
 
@@ -308,7 +314,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 					if (md.isArchiveManifest()) {
 						metaBox.addChild("#", "Document type: ArchiveManifest");
 						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?type=manifest&key=" + furi,
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?type=zipmanifest&key=" + furi,
 						"reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
@@ -339,7 +345,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 		return pageNode.generate();
 	}
 	
-	private String makeManifestPage(String key) {
+	private String makeManifestPage(String key, boolean simple) {
 		HTMLNode pageNode = m_pm.getPageNode("KeyExplorer", null);
 		HTMLNode contentNode = m_pm.getContentNode(pageNode);
 
@@ -355,23 +361,29 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 				ClientKey tempKey = tempUSK.getSSK();
 				furi = tempKey.getURI();
 			} 
-			metadata = manifestGet(furi);
+			if (simple)
+				metadata = simpleManifestGet(furi);
+			else
+				metadata = zipManifestGet(furi);
 		} catch (MalformedURLException e) {
 			error = "MalformedURL";
 		} catch (FetchException e) {
-			error = "get failed";
+			error = "get failed ("+e.mode+"): "+e.getMessage();
 		} catch (IOException e) {
 			error = "io error";
 		} catch (MetadataParseException e) {
 			error = "MetadataParseException";
+		} catch (LowLevelGetException e) {
+			error = "get failed ("+e.code+"): "+e.getMessage();
 		}
 
 		if (error != null) {
 			contentNode.addChild(createErrorBox(error));
+			contentNode.addChild(createUriBox());
+			return pageNode.generate();
 		}
 
 		contentNode.addChild(createUriBox());
-		
 		String title = "Key: " + furi.toString()  + "\u00a0(Manifest)";
 		HTMLNode listBox = m_pm.getInfobox(title);
 		contentNode.addChild(listBox);
@@ -435,10 +447,18 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 	}
 
 	public String getVersion() {
-		return "0.1.1 r"+ Version.svnRevision;
+		return "0.2 r"+ Version.svnRevision;
 	}
 	
-	private Metadata manifestGet(FreenetURI uri) throws FetchException, MetadataParseException, IOException{
+	private Metadata simpleManifestGet(FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
+		GetResult res = simpleGet(uri);
+		if (!res.isMetaData()) {
+			throw new MetadataParseException("uri did not point to metadata " + uri);
+		}
+		return Metadata.construct(res.getData());
+	}
+	
+	private Metadata zipManifestGet(FreenetURI uri) throws FetchException, MetadataParseException, IOException{
 		HighLevelSimpleClient hlsc = m_pr.getHLSimpleClient();
 		FetchContext fctx = hlsc.getFetchContext();
 		fctx.returnZIPManifests = true;
