@@ -487,5 +487,4 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 		}
 		throw new FetchException(200, "impossible? no metadata in archive " + uri);
 	}
-
 }
