@@ -20,16 +20,16 @@ import freenet.client.HighLevelSimpleClient;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.clients.http.PageMaker;
-import freenet.config.Config;
-import freenet.config.SubConfig;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
 import freenet.keys.USK;
+import freenet.l10n.L10n.LANGUAGE;
 import freenet.node.LowLevelGetException;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
 import freenet.pluginmanager.FredPluginHTTP;
+import freenet.pluginmanager.FredPluginL10n;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginHTTPException;
@@ -46,7 +46,7 @@ import freenet.support.io.BucketTools;
  * @author saces
  *
  */
-public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, FredPluginThreadless, FredPluginVersioned {
+public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned {
 
 	private PluginRespirator m_pr;
 	private PageMaker m_pm;
@@ -132,12 +132,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 	}
 
 	public void runPlugin(PluginRespirator pr) {
-		Config nc = pr.getNode().config;
-		SubConfig fc = nc.get("fproxy");
-		String cssName = fc.getString("css");
-
-		m_pm = new PageMaker(cssName);
 		m_pr = pr;
+		m_pm = pr.getPageMaker();
 	}
 
 	public void terminate() {
@@ -486,5 +482,14 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginFCP, F
 			}
 		}
 		throw new FetchException(200, "impossible? no metadata in archive " + uri);
+	}
+
+	public String getString(String key) {
+		// TODO Auto-generated method stub
+		return key;
+	}
+
+	public void setLanguage(LANGUAGE selectedLanguage) {
+		// TODO Auto-generated method stub
 	}
 }
