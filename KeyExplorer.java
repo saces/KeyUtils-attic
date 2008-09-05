@@ -212,7 +212,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				asciibuf[j] = ' ';
 
 			dataBox2.addChild("%", "<PRE>\n");
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			int offset = 0;
 
 			for (int i = 0; i < data.length; i++) {
