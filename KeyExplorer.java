@@ -70,12 +70,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		return makeMainPage(uri);
 	}
 
-	public String handleHTTPPut(HTTPRequest request) throws PluginHTTPException {
-		return makeMainPage();
-	}
-
 	public void handle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) {
-
 		if (params == null) {
 			sendError(replysender, 0, "Got void message");
 			return;
