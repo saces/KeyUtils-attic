@@ -51,8 +51,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	private PluginRespirator m_pr;
 	private PageMaker m_pm;
 
-	private HashMap getters = new HashMap();
-
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
 		String uri = request.getParam("key");
 		String type = request.getParam("type");
