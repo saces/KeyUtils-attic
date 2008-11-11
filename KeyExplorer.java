@@ -12,6 +12,9 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.tools.tar.TarEntry;
+import org.apache.tools.tar.TarInputStream;
+
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
@@ -54,11 +57,14 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
 		String uri = request.getParam("key");
 		String type = request.getParam("type");
-		if ("zipmanifest".equals(type)) {
-			return makeManifestPage(uri, false);
+		if ("ZIPmanifest".equals(type)) {
+			return makeManifestPage(uri, true, false);
+		}
+		if ("TARmanifest".equals(type)) {
+			return makeManifestPage(uri, false, true);
 		}
 		if ("simplemanifest".equals(type)) {
-			return makeManifestPage(uri, true);
+			return makeManifestPage(uri, false, false);
 		}
 		return makeMainPage(uri);
 	}
@@ -152,10 +158,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		sfs.put("Code", code);
 		sfs.putOverwrite("Description", description);
 		replysender.send(sfs);
-	}
-
-	private String makeMainPage() {
-		return makeMainPage(null);
 	}
 
 	private String makeMainPage(String key) {
@@ -303,7 +305,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 					if (md.isArchiveManifest()) {
 						metaBox.addChild("#", "Document type: ArchiveManifest");
 						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?type=zipmanifest&key=" + furi,
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?type="+md.getArchiveType().name()+"manifest&key=" + furi,
 						"reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
@@ -311,7 +313,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 					if (!md.isCompressed()) {
 						metaBox.addChild("#", "Uncompressed");
 					} else {
-						metaBox.addChild("#", "Compressed (codec " + md.getCompressionCodec() + ")");
+						metaBox.addChild("#", "Compressed (codec " + md.getCompressionCodec().name + ")");
 						metaBox.addChild("%", "<BR />");
 						metaBox.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes");
 					}
@@ -334,7 +336,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		return pageNode.generate();
 	}
 	
-	private String makeManifestPage(String key, boolean simple) {
+	private String makeManifestPage(String key, boolean zip, boolean tar) {
 		HTMLNode pageNode = m_pm.getPageNode("KeyExplorer", null);
 		HTMLNode contentNode = m_pm.getContentNode(pageNode);
 
@@ -350,10 +352,13 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				ClientKey tempKey = tempUSK.getSSK();
 				furi = tempKey.getURI();
 			} 
-			if (simple)
-				metadata = simpleManifestGet(furi);
-			else
+	
+			if (zip)
 				metadata = zipManifestGet(furi);
+			else if (tar)
+				metadata = tarManifestGet(furi);
+			else
+				metadata = simpleManifestGet(furi);
 		} catch (MalformedURLException e) {
 			error = "MalformedURL";
 		} catch (FetchException e) {
@@ -386,10 +391,10 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 	
 	private void parseMetadata(HTMLNode htmlnode, HashMap<String, Metadata> docs, String prefix, String furi) {
-		Set s = docs.keySet();
-		Iterator i = s.iterator();
+		Set<String> s = docs.keySet();
+		Iterator<String> i = s.iterator();
 		while (i.hasNext()) {
-			String name = (String) i.next();
+			String name = i.next();
 			Metadata md = docs.get(name);
 			String fname = prefix + name;
 			if (md.isArchiveInternalRedirect()) {
@@ -436,7 +441,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public String getVersion() {
-		return "0.2 r"+ Version.svnRevision;
+		return "0.3 r"+ Version.svnRevision;
 	}
 	
 	private Metadata simpleManifestGet(FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
@@ -451,6 +456,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		HighLevelSimpleClient hlsc = m_pr.getHLSimpleClient();
 		FetchContext fctx = hlsc.getFetchContext();
 		fctx.returnZIPManifests = true;
+		//fctx.r
 		FetchWaiter fw = new FetchWaiter();
 		hlsc.fetch(uri, -1, this, fw, fctx);
 		FetchResult fr = fw.waitForCompletion();
@@ -476,6 +482,38 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		}
 		throw new FetchException(200, "impossible? no metadata in archive " + uri);
 	}
+	
+	private Metadata tarManifestGet(FreenetURI uri) throws FetchException, MetadataParseException, IOException{
+		HighLevelSimpleClient hlsc = m_pr.getHLSimpleClient();
+		FetchContext fctx = hlsc.getFetchContext();
+		fctx.returnZIPManifests = true;
+		//fctx.r
+		FetchWaiter fw = new FetchWaiter();
+		hlsc.fetch(uri, -1, this, fw, fctx);
+		FetchResult fr = fw.waitForCompletion();
+		TarInputStream zis = new TarInputStream(fr.asBucket().getInputStream());
+		TarEntry entry;
+		ByteArrayOutputStream bos;
+		while(true) {
+			entry = zis.getNextEntry();
+			if(entry == null) break;
+			if(entry.isDirectory()) continue;
+			String name = entry.getName();
+			if(".metadata".equals(name)) {
+				byte[] buf = new byte[32768];
+				bos = new ByteArrayOutputStream();
+				// Read the element
+				int readBytes;
+				while((readBytes = zis.read(buf)) > 0) {
+					bos.write(buf, 0, readBytes);
+				}
+				bos.close();
+				return Metadata.construct(bos.toByteArray());
+			}
+		}
+		throw new FetchException(200, "impossible? no metadata in archive " + uri);
+	}
+
 
 	public String getString(String key) {
 		// TODO Auto-generated method stub

@@ -29,19 +29,23 @@ public class VerySimpleGetter extends ClientRequester {
 		uri = uri2;
 	}
 	
+	@Override
 	public FreenetURI getURI() {
 		return uri;
 	}
 
+	@Override
 	public boolean isFinished() {
 		Logger.error(this, "TODO?", new Error("TODO?"));
 		return false;
 	}
 
+	@Override
 	public void notifyClients() {
 		Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
+	@Override
 	public void onTransition(ClientGetState oldState, ClientGetState newState) {
 		Logger.error(this, "TODO?", new Error("TODO?"));
 	}
