@@ -34,13 +34,14 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 		super(key2, maxRetries2, ctx2, parent2);
 	}
 
+	@Override
 	public void onFailure(LowLevelGetException e, Object token,
 			RequestScheduler sched) {
 		boolean logMINOR = Logger.shouldLog(Logger.MINOR, this);
 		if (logMINOR)
 			Logger.minor(this, "onFailure( " + e + " , ...)", e);
 
-		if (!(isFatalError(e.code))) {
+		if ((!isFatalError(e.code)) && (sched != null)) {
 			if (retry(sched, getContext().executor)) {
 				if (logMINOR)
 					Logger.minor(this, "Retrying");
@@ -54,6 +55,7 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 		}
 	}
 
+	@Override
 	public void onSuccess(ClientKeyBlock block, boolean fromStore,
 			Object token, RequestScheduler scheduler) {
 		data = extract(block);
