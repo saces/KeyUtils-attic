@@ -416,7 +416,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	        	htmlnode.addChild("#", "(dir)\u00a0");
 	        	htmlnode.addChild("#", fname);
 				htmlnode.addChild("%", "<BR />");
-	        	parseMetadata(htmlnode, md.getDocuments(), prefix + fname + "/", furi);
+				parseMetadata(htmlnode, md.getDocuments(), fname + "/", furi);
 	        }
        }
 		
