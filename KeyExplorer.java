@@ -405,8 +405,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	        	htmlnode.addChild("#", "(extern)\u00a0");
 	        	htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
 	        	htmlnode.addChild("#", "\u00a0");
-	        	htmlnode.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(),
-				"explore"));
+				if (md.getSingleTarget() != null) // why null?
+					htmlnode.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(), "explore"));
 				htmlnode.addChild("%", "<BR />");
 	        } else if (md.isSplitfile()) {
 	        	htmlnode.addChild("#", "(extern, splitf)\u00a0");
