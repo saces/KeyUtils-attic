@@ -22,6 +22,7 @@ import freenet.client.FetchWaiter;
 import freenet.client.HighLevelSimpleClient;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
+import freenet.clients.http.LinkFixer;
 import freenet.clients.http.PageMaker;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
@@ -53,25 +54,30 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 	private PluginRespirator m_pr;
 	private PageMaker m_pm;
+	
+	public LinkFixer getFixer() {
+		return m_pr.getNode().getLinkFilter();
+	}
 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
 		String uri = request.getParam("key");
 		String type = request.getParam("type");
+		LinkFixer fixer = getFixer();
 		if ("ZIPmanifest".equals(type)) {
-			return makeManifestPage(uri, true, false);
+			return makeManifestPage(uri, true, false, fixer);
 		}
 		if ("TARmanifest".equals(type)) {
-			return makeManifestPage(uri, false, true);
+			return makeManifestPage(uri, false, true, fixer);
 		}
 		if ("simplemanifest".equals(type)) {
-			return makeManifestPage(uri, false, false);
+			return makeManifestPage(uri, false, false, fixer);
 		}
-		return makeMainPage(uri);
+		return makeMainPage(uri, fixer);
 	}
 
 	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
 		String uri = request.getPartAsString("key", 1024);
-		return makeMainPage(uri);
+		return makeMainPage(uri, getFixer());
 	}
 
 	public void handle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) {
@@ -160,7 +166,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		replysender.send(sfs);
 	}
 
-	private String makeMainPage(String key) {
+	private String makeMainPage(String key, LinkFixer fixer) {
 		HTMLNode pageNode = m_pm.getPageNode("KeyExplorer", null);
 		HTMLNode contentNode = m_pm.getContentNode(pageNode);
 
@@ -264,7 +270,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 					if (md.isSimpleManifest()) {
 						metaBox.addChild("#", "Document type: SimpleManifest");
 						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?type=simplemanifest&key=" + furi,
+						metaBox.addChild(new HTMLNode("a", "href", fixer.fixLink("/plugins/plugins.KeyExplorer.KeyExplorer/?type=simplemanifest&key=" + furi),
 						"reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
@@ -287,12 +293,12 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 							String sfrUri = md.getSingleTarget().toString();
 							metaBox.addChild("#", sfrUri);
 							metaBox.addChild("#", "\u00a0");
-							metaBox.addChild(new HTMLNode("a", "href", "/?key=" + sfrUri, "open"));
+							metaBox.addChild(new HTMLNode("a", "href", fixer.fixLink("/?key=" + sfrUri), "open"));
 							metaBox.addChild("#", "\u00a0");
-							metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + sfrUri,
+							metaBox.addChild(new HTMLNode("a", "href", fixer.fixLink("/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + sfrUri),
 									"explore"));
 						} else {
-							metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));							
+							metaBox.addChild(new HTMLNode("a", "href", fixer.fixLink("/?key=" + furi), "reopen normal"));							
 						}
 						metaBox.addChild("%", "<BR />");
 					}
@@ -305,7 +311,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 					if (md.isArchiveManifest()) {
 						metaBox.addChild("#", "Document type: ArchiveManifest");
 						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?type="+md.getArchiveType().name()+"manifest&key=" + furi,
+						metaBox.addChild(new HTMLNode("a", "href", fixer.fixLink("/plugins/plugins.KeyExplorer.KeyExplorer/?type="+md.getArchiveType().name()+"manifest&key=" + furi),
 						"reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
@@ -336,7 +342,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		return pageNode.generate();
 	}
 	
-	private String makeManifestPage(String key, boolean zip, boolean tar) {
+	private String makeManifestPage(String key, boolean zip, boolean tar, LinkFixer fixer) {
 		HTMLNode pageNode = m_pm.getPageNode("KeyExplorer", null);
 		HTMLNode contentNode = m_pm.getContentNode(pageNode);
 
@@ -384,13 +390,13 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		
 		HashMap<String, Metadata> docs = metadata.getDocuments();
 
-		parseMetadata(listBox, docs, "", furi.toString());
+		parseMetadata(listBox, docs, "", furi.toString(), fixer);
 
 		return pageNode.generate();
 
 	}
 	
-	private void parseMetadata(HTMLNode htmlnode, HashMap<String, Metadata> docs, String prefix, String furi) {
+	private void parseMetadata(HTMLNode htmlnode, HashMap<String, Metadata> docs, String prefix, String furi, LinkFixer fixer) {
 		Set<String> s = docs.keySet();
 		Iterator<String> i = s.iterator();
 		while (i.hasNext()) {
@@ -399,24 +405,24 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			String fname = prefix + name;
 			if (md.isArchiveInternalRedirect()) {
 				htmlnode.addChild("#", "(container)\u00a0");
-				htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
+				htmlnode.addChild(new HTMLNode("a", "href", fixer.fixLink("/?key=" + furi + "/" + fname), fname));
 				htmlnode.addChild("%", "<BR />");
 	        } else if (md.isSingleFileRedirect()) {
 	        	htmlnode.addChild("#", "(extern)\u00a0");
-	        	htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
+	        	htmlnode.addChild(new HTMLNode("a", "href", fixer.fixLink("/?key=" + furi + "/" + fname), fname));
 	        	htmlnode.addChild("#", "\u00a0");
 				if (md.getSingleTarget() != null) // why null?
-					htmlnode.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(), "explore"));
+					htmlnode.addChild(new HTMLNode("a", "href", fixer.fixLink("/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString()), "explore"));
 				htmlnode.addChild("%", "<BR />");
 	        } else if (md.isSplitfile()) {
 	        	htmlnode.addChild("#", "(extern, splitf)\u00a0");
-	        	htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
+	        	htmlnode.addChild(new HTMLNode("a", "href", fixer.fixLink("/?key=" + furi + "/" + fname), fname));
 				htmlnode.addChild("%", "<BR />");
 	        } else {
 	        	htmlnode.addChild("#", "(dir)\u00a0");
 	        	htmlnode.addChild("#", fname);
 				htmlnode.addChild("%", "<BR />");
-				parseMetadata(htmlnode, md.getDocuments(), fname + "/", furi);
+				parseMetadata(htmlnode, md.getDocuments(), fname + "/", furi, fixer);
 	        }
        }
 		
