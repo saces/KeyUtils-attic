@@ -417,10 +417,11 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				htmlnode.addChild("#", "(simple-manifest)\u00a0");
 			if (md.isSimpleSplitfile())
 				htmlnode.addChild("#", "(simple-splitf)\u00a0");
+			else if (md.isSplitfile())
+				htmlnode.addChild("#", "(splitf)\u00a0");
 			if (md.isSingleFileRedirect())
 				htmlnode.addChild("#", "(extern)\u00a0");
-			if (md.isSplitfile())
-				htmlnode.addChild("#", "(splitf)\u00a0");
+			
 			
 			if (md.isArchiveInternalRedirect()) {
 				htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
