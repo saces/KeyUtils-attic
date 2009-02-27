@@ -260,7 +260,11 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 					metaBox.addChild("#", "Document type:");
 					metaBox.addChild("%", "<BR />");
-
+					
+					if (md.isMultiLevelMetadata()) {
+						metaBox.addChild("#", "Document type: MultiLevelMetadata");		
+						metaBox.addChild("%", "<BR />");				
+					}
 					if (md.isSimpleManifest()) {
 						metaBox.addChild("#", "Document type: SimpleManifest");
 						metaBox.addChild("#", "\u00a0");
@@ -316,7 +320,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 						metaBox.addChild("#", "Compressed (codec " + md.getCompressionCodec().name + ")");
 						metaBox.addChild("%", "<BR />");
 						metaBox.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes");
-					}
+					}					
+					
 					metaBox.addChild("%", "<BR />");
 
 					metaBox.addChild("#", "Data size\u00a0=\u00a0" + md.dataLength());
@@ -397,22 +402,38 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			String name = i.next();
 			Metadata md = docs.get(name);
 			String fname = prefix + name;
-			if (md.isArchiveInternalRedirect()) {
+			
+			if (md.isArchiveInternalRedirect())
 				htmlnode.addChild("#", "(container)\u00a0");
+			if (md.isArchiveManifest())
+				htmlnode.addChild("#", "(archive)\u00a0");
+			if (md.isCompressed())
+				htmlnode.addChild("#", "(compress)\u00a0");
+			if (md.isMultiLevelMetadata())
+				htmlnode.addChild("#", "(multilevel)\u00a0");
+			if (md.isResolved())
+				htmlnode.addChild("#", "(resolved)\u00a0");
+			if (md.isSimpleManifest())
+				htmlnode.addChild("#", "(simple-manifest)\u00a0");
+			if (md.isSimpleSplitfile())
+				htmlnode.addChild("#", "(simple-splitf)\u00a0");
+			if (md.isSingleFileRedirect())
+				htmlnode.addChild("#", "(extern)\u00a0");
+			if (md.isSplitfile())
+				htmlnode.addChild("#", "(splitf)\u00a0");
+			
+			if (md.isArchiveInternalRedirect()) {
 				htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
 				htmlnode.addChild("%", "<BR />");
 	        } else if (md.isSingleFileRedirect()) {
-	        	htmlnode.addChild("#", "(extern)\u00a0");
 	        	htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
 	        	htmlnode.addChild("#", "\u00a0");
 				htmlnode.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(), "explore"));
 				htmlnode.addChild("%", "<BR />");
 	        } else if (md.isSplitfile()) {
-	        	htmlnode.addChild("#", "(extern, splitf)\u00a0");
 	        	htmlnode.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
 				htmlnode.addChild("%", "<BR />");
 	        } else {
-	        	htmlnode.addChild("#", "(dir)\u00a0");
 	        	htmlnode.addChild("#", fname);
 				htmlnode.addChild("%", "<BR />");
 				parseMetadata(htmlnode, md.getDocuments(), fname + "/", furi);
