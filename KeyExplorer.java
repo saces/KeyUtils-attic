@@ -6,8 +6,10 @@ package plugins.KeyExplorer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -39,7 +41,6 @@ import freenet.pluginmanager.PluginHTTPException;
 import freenet.pluginmanager.PluginReplySender;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
-import freenet.support.HexUtil;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
@@ -201,42 +202,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				title = title + "\u00a0(MetaData)";
 			HTMLNode dataBox2 = m_pm.getInfobox(title);
 
-			char[] asciibuf = new char[16];
-
-			for (int j = 0; j < 16; j++)
-				asciibuf[j] = ' ';
-
 			dataBox2.addChild("%", "<PRE>\n");
-			StringBuilder sb = new StringBuilder();
-			int offset = 0;
-
-			for (int i = 0; i < data.length; i++) {
-				offset = (i) % 16;
-				HexUtil.bytesToHexAppend(data, i, 1, sb);
-				sb.append(' ');
-				if ((data[i] > 31) && (data[i] < 127)) {
-					// int j = data[i];
-					// sb.append((char) j);
-					asciibuf[offset] = (char) data[i];
-				}
-
-				if ((i > 1) && ((i + 1) % 16 == 0)) {
-					sb.append(' ');
-					sb.append(asciibuf);
-					sb.append('\n');
-					for (int k = 0; k < 16; k++)
-						asciibuf[k] = ' ';
-				}
-			}
-			if (offset > 0) {
-				int n = (15 - offset) * 3;
-				for (int m = 0; m < n; m++)
-					sb.append(' ');
-				sb.append(' ');
-				sb.append(asciibuf);
-			}
-
-			dataBox2.addChild("#", sb.toString());
+			dataBox2.addChild("#", hexDump(data));
 			dataBox2.addChild("%", "\n</PRE>");
 
 			contentNode.addChild(dataBox2);
@@ -340,7 +307,46 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 		return pageNode.generate();
 	}
-	
+
+	private String hexDump(byte[] data) {
+		StringBuilder sb = new StringBuilder();
+		Formatter formatter = new Formatter(sb, Locale.US);
+
+		try {
+			for (int offset = 0; offset < data.length; offset += 16) {
+				formatter.format("%07x:",  offset);
+				
+				for (int i = 0; i < 16; i++) {
+					if (i % 2 == 0)
+						formatter.out().append(' ');
+					if (i + offset >= data.length) {
+						formatter.out().append("  ");
+						continue;
+					}
+					formatter.format("%02x", data[i + offset]);
+				}
+
+				formatter.out().append("  ");
+				for (int i = 0; i < 16; i++) {
+					if (i + offset >= data.length)
+						break;
+
+					if (data[i + offset] >= 32 && data[i + offset] < 127) {
+						formatter.out().append((char) data[i + offset]);
+					} else
+						formatter.out().append('.');
+
+				}
+				formatter.out().append('\n');
+			}
+		} catch (IOException e) {
+			// impossible
+		}
+
+		formatter.flush();
+		return sb.toString();
+	}
+
 	private String makeManifestPage(String key, boolean zip, boolean tar) {
 		HTMLNode pageNode = m_pm.getPageNode("KeyExplorer", null);
 		HTMLNode contentNode = m_pm.getContentNode(pageNode);
