@@ -202,9 +202,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				title = title + "\u00a0(MetaData)";
 			HTMLNode dataBox2 = m_pm.getInfobox(title);
 
-			dataBox2.addChild("%", "<PRE>\n");
+			dataBox2.addChild("%", "<pre lang=\"en\" style=\"font-family: monospace;\">\n");
 			dataBox2.addChild("#", hexDump(data));
-			dataBox2.addChild("%", "\n</PRE>");
+			dataBox2.addChild("%", "\n</pre>");
 
 			contentNode.addChild(dataBox2);
 
