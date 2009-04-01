@@ -31,6 +31,7 @@ import freenet.keys.FreenetURI;
 import freenet.keys.USK;
 import freenet.l10n.L10n.LANGUAGE;
 import freenet.node.LowLevelGetException;
+import freenet.node.RequestClient;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
 import freenet.pluginmanager.FredPluginHTTP;
@@ -38,9 +39,11 @@ import freenet.pluginmanager.FredPluginL10n;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginHTTPException;
+import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginReplySender;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
+import freenet.support.Logger;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
@@ -76,6 +79,14 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public void handle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) {
+		try {
+			realHandle(replysender, params, data, accesstype);
+		} catch (PluginNotFoundException pnfe) {
+			Logger.error(this, "Connction to request sender lost.", pnfe);
+		}
+	}
+
+	private void realHandle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) throws PluginNotFoundException {
 		if (params == null) {
 			sendError(replysender, 0, "Got void message");
 			return;
@@ -111,7 +122,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 			try {
 				FreenetURI furi = new FreenetURI(uri);
-				GetResult getResult = simpleGet(furi);
+				GetResult getResult = simpleGet(m_pr, furi);
 
 				SimpleFieldSet sfs = new SimpleFieldSet(true);
 				sfs.putSingle("Identifier", identifier);
@@ -139,21 +150,20 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	public void terminate() {
 	}
 
-	private GetResult simpleGet(FreenetURI uri) throws MalformedURLException, LowLevelGetException {
+	private static GetResult simpleGet(PluginRespirator pr, FreenetURI uri) throws MalformedURLException, LowLevelGetException {
 		ClientKey ck;
 		try {
 			ck = (ClientKey) BaseClientKey.getBaseKey(uri);
 		} catch (ClassCastException cce) {
-			throw new MalformedURLException("Not a supported freenet uri: "+uri);
+			throw new MalformedURLException("Not a supported freenet uri: " + uri);
 		}
-		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, m_pr.getNode().clientCore.requestStarters.chkFetchScheduler, m_pr
-				.getNode().clientCore.requestStarters.sskFetchScheduler, uri, new Object());
-		VerySimpleGet vs = new VerySimpleGet(ck, 3, m_pr.getHLSimpleClient().getFetchContext(), vsg);
-		vs.schedule();
+		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri, (RequestClient) pr.getHLSimpleClient());
+		VerySimpleGet vs = new VerySimpleGet(ck, 0, pr.getHLSimpleClient().getFetchContext(), vsg);
+		vs.schedule(null, pr.getNode().clientCore.clientContext);
 		return new GetResult(vs.waitForCompletion(), vs.isMetadata());
 	}
 
-	private void sendError(PluginReplySender replysender, int code, String description) {
+	private void sendError(PluginReplySender replysender, int code, String description) throws PluginNotFoundException {
 		SimpleFieldSet sfs = new SimpleFieldSet(true);
 		sfs.putOverwrite("Status", "Error");
 		sfs.put("Code", code);
@@ -179,7 +189,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 					ClientKey tempKey = tempUSK.getSSK();
 					furi = tempKey.getURI();
 				} 
-				getresult = simpleGet(furi);
+				getresult = simpleGet(m_pr, furi);
 				data = BucketTools.toByteArray(getresult.getData());
 			}
 		} catch (MalformedURLException e) {
@@ -472,7 +482,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 	
 	private Metadata simpleManifestGet(FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
-		GetResult res = simpleGet(uri);
+		GetResult res = simpleGet(m_pr, uri);
 		if (!res.isMetaData()) {
 			throw new MetadataParseException("uri did not point to metadata " + uri);
 		}
@@ -485,7 +495,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		fctx.returnZIPManifests = true;
 		//fctx.r
 		FetchWaiter fw = new FetchWaiter();
-		hlsc.fetch(uri, -1, this, fw, fctx);
+		hlsc.fetch(uri, -1, (RequestClient) hlsc, fw, fctx);
 		FetchResult fr = fw.waitForCompletion();
 		ZipInputStream zis = new ZipInputStream(fr.asBucket().getInputStream());
 		ZipEntry entry;
@@ -516,7 +526,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		fctx.returnZIPManifests = true;
 		//fctx.r
 		FetchWaiter fw = new FetchWaiter();
-		hlsc.fetch(uri, -1, this, fw, fctx);
+		hlsc.fetch(uri, -1, (RequestClient) hlsc, fw, fctx);
 		FetchResult fr = fw.waitForCompletion();
 		TarInputStream zis = new TarInputStream(fr.asBucket().getInputStream());
 		TarEntry entry;

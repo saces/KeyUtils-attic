@@ -5,15 +5,18 @@ package plugins.KeyExplorer;
 
 import java.io.IOException;
 
+import com.db4o.ObjectContainer;
+
 import freenet.client.FetchContext;
 import freenet.client.async.BaseSingleFileFetcher;
+import freenet.client.async.ClientContext;
 import freenet.client.async.ClientRequester;
+import freenet.client.async.KeyListenerConstructionException;
 import freenet.keys.ClientKey;
 import freenet.keys.ClientKeyBlock;
 import freenet.keys.KeyDecodeException;
 import freenet.keys.TooBigException;
 import freenet.node.LowLevelGetException;
-import freenet.node.RequestScheduler;
 import freenet.support.Logger;
 import freenet.support.api.Bucket;
 
@@ -31,20 +34,19 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 
 	public VerySimpleGet(ClientKey key2, int maxRetries2, FetchContext ctx2,
 			ClientRequester parent2) {
-		super(key2, maxRetries2, ctx2, parent2);
+		super(key2, maxRetries2, ctx2, parent2, true);
 	}
 
 	@Override
-	public void onFailure(LowLevelGetException e, Object token,
-			RequestScheduler sched) {
+	public void onFailure(LowLevelGetException e, Object token, ObjectContainer container, ClientContext context) {
 		boolean logMINOR = Logger.shouldLog(Logger.MINOR, this);
 		if (logMINOR)
 			Logger.minor(this, "onFailure( " + e + " , ...)", e);
 
-		if ((!isFatalError(e.code)) && (sched != null)) {
-			if (retry(sched, getContext().executor)) {
+		if (!(isFatalError(e.code))) {
+			if (retry(container, context)) {
 				if (logMINOR)
-					Logger.minor(this, "Retrying");
+					Logger.minor(this, "Retrying", new Error("DEBUG"));
 				return;
 			}
 		}
@@ -56,9 +58,8 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 	}
 
 	@Override
-	public void onSuccess(ClientKeyBlock block, boolean fromStore,
-			Object token, RequestScheduler scheduler) {
-		data = extract(block);
+	public void onSuccess(ClientKeyBlock block, boolean fromStore, Object token, ObjectContainer container, ClientContext context) {
+		data = extract(block, context);
 		ismetadata = block.isMetadata();
 		if (data == null)
 			return; // failed
@@ -83,27 +84,27 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 		return data;
 	}
 
-	private Bucket extract(ClientKeyBlock block) {
+	private Bucket extract(ClientKeyBlock block, ClientContext context) {
 		Bucket tempdata;
 		try {
-			// FIXME What is the maximim size of an decompressed 32K chunk?
-			tempdata = block.decode(getContext().bucketFactory, 1024 * 1024,
+			// FIXME What is the maximum size of an decompressed 32K chunk?
+			tempdata = block.decode(context.tempBucketFactory, 1024 * 1024,
 					false);
 		} catch (KeyDecodeException e1) {
 			if (Logger.shouldLog(Logger.MINOR, this))
 				Logger.minor(this, "Decode failure: " + e1, e1);
 			onFailure(new LowLevelGetException(
-					LowLevelGetException.DECODE_FAILED), null, null);
+					LowLevelGetException.DECODE_FAILED), null, null, context);
 			return null;
 		} catch (TooBigException e) {
 			Logger.error(this, "Should never happens: " + e, e);
 			onFailure(new LowLevelGetException(
-					LowLevelGetException.INTERNAL_ERROR), null, null);
+					LowLevelGetException.INTERNAL_ERROR), null, null, context);
 			return null;
 		} catch (IOException e) {
 			Logger.error(this, "Could not capture data - disk full?: " + e, e);
 			onFailure(new LowLevelGetException(
-					LowLevelGetException.DECODE_FAILED), null, null);
+					LowLevelGetException.DECODE_FAILED), null, null, context);
 			return null;
 		}
 		return tempdata;
@@ -135,5 +136,9 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 					"Do not know if error code ("+mode+") is fatal: " + LowLevelGetException.getMessage(mode));
 			return false; // assume it isn't
 		}
+	}
+
+	public void onFailed(KeyListenerConstructionException e, ObjectContainer container, ClientContext context) {
+		Logger.error(this, "TODO?: " + e, e);
 	}
 }

@@ -3,10 +3,13 @@
  * http://www.gnu.org/ for further details of the GPL. */
 package plugins.KeyExplorer;
 
+import com.db4o.ObjectContainer;
+
+import freenet.client.async.ClientContext;
 import freenet.client.async.ClientGetState;
-import freenet.client.async.ClientRequestScheduler;
 import freenet.client.async.ClientRequester;
 import freenet.keys.FreenetURI;
+import freenet.node.RequestClient;
 import freenet.support.Logger;
 
 /**
@@ -24,8 +27,8 @@ public class VerySimpleGetter extends ClientRequester {
 	 * @param client2 
 	 * 
 	 */
-	public VerySimpleGetter(short priorityclass, ClientRequestScheduler chkscheduler, ClientRequestScheduler sskscheduler, FreenetURI uri2, Object client2) {
-		super(priorityclass, chkscheduler, sskscheduler, client2);
+	public VerySimpleGetter(short priorityclass, FreenetURI uri2, RequestClient client2) {
+		super(priorityclass, client2);
 		uri = uri2;
 	}
 	
@@ -41,12 +44,17 @@ public class VerySimpleGetter extends ClientRequester {
 	}
 
 	@Override
-	public void notifyClients() {
+	public void cancel(ObjectContainer container, ClientContext context) {
 		Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
 	@Override
-	public void onTransition(ClientGetState oldState, ClientGetState newState) {
+	public void notifyClients(ObjectContainer container, ClientContext context) {
+		Logger.error(this, "TODO?", new Error("TODO?"));
+	}
+
+	@Override
+	public void onTransition(ClientGetState oldState, ClientGetState newState, ObjectContainer container) {
 		Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
