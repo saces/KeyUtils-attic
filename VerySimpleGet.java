@@ -87,8 +87,14 @@ public class VerySimpleGet extends BaseSingleFileFetcher {
 	private Bucket extract(ClientKeyBlock block, ClientContext context) {
 		Bucket tempdata;
 		try {
-			// FIXME What is the maximum size of an decompressed 32K chunk?
-			tempdata = block.decode(context.tempBucketFactory, 1024 * 1024,
+			// TODO this: make max size a parameter (4MB hardcoded for now)
+			// TODO KeyExplorer: ask/warn the user before displaying browser bombs.
+			// FIXME
+			//   What is the maximum size of an decompressed 32K chunk?
+			//   Hah, 2GB is the max insertsize for a compressed single chunk,
+			//   its a memory/browser bomb!
+			//   The hexdump can be ~4x in size! (8GB+a few K for surrounding html)
+			tempdata = block.decode(context.tempBucketFactory, 4 * 1024 * 1024,
 					false);
 		} catch (KeyDecodeException e1) {
 			if (Logger.shouldLog(Logger.MINOR, this))
