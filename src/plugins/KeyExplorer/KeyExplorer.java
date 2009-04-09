@@ -36,6 +36,7 @@ import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
 import freenet.pluginmanager.FredPluginHTTP;
 import freenet.pluginmanager.FredPluginL10n;
+import freenet.pluginmanager.FredPluginRealVersioned;
 import freenet.pluginmanager.FredPluginThreadless;
 import freenet.pluginmanager.FredPluginVersioned;
 import freenet.pluginmanager.PluginHTTPException;
@@ -53,7 +54,7 @@ import freenet.support.io.BucketTools;
  * @author saces
  *
  */
-public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned {
+public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
 
 	private PluginRespirator m_pr;
 	private PageMaker m_pm;
@@ -479,6 +480,10 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 	public String getVersion() {
 		return "0.3 r"+ Version.svnRevision;
+	}
+
+	public long getRealVersion() {
+		return Version.version;
 	}
 	
 	private Metadata simpleManifestGet(FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
