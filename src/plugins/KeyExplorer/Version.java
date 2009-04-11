@@ -18,6 +18,6 @@ public class Version {
 	 * 
 	 * I have set this to 3000 to allow encoding marketing versions into real versions.
 	 * Long provides plenty of leeway! Toad. */
-	public static long version = 3000;
+	public static long version = 4000;
 
 }
