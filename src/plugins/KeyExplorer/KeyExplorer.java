@@ -923,12 +923,10 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		// turn USK into SSK
 		if (tempURI.isUSK()) {
 			if (errors != null) {
-				USK tempUSK = USK.create(tempURI);
-				ClientKey tempKey = tempUSK.getSSK();
-				tempURI = tempKey.getURI();
+				tempURI = tempURI.sskForUSK();
 				errors.add("URI was an USK, converted it to SSK for you");
 			} else {
-				throw new MalformedURLException("USK not supported, use underlaying SSK insted.");
+				throw new MalformedURLException("USK not supported, use underlying SSK instead.");
 			}
 		}
 		
