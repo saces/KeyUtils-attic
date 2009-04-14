@@ -175,7 +175,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				}
 
 				try {
-					FreenetURI furi = new FreenetURI(uri);
+					FreenetURI furi = sanitizeURI(null, uri);
 					GetResult getResult = simpleGet(m_pr, furi);
 					SimpleFieldSet sfs = new SimpleFieldSet(true);
 					sfs.putSingle("Identifier", identifier);
@@ -339,13 +339,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 		try {
 			if (key != null && (key.trim().length() > 0)) {
-				furi = new FreenetURI(key);
+				furi = sanitizeURI(errors, key);
 				retryUri = furi;
-				if ("USK".equals(furi.getKeyType())) {
-					USK tempUSK = USK.create(furi);
-					ClientKey tempKey = tempUSK.getSSK();
-					furi = tempKey.getURI();
-				}
 				getresult = simpleGet(m_pr, furi);
 				data = BucketTools.toByteArray(getresult.getData());
 			}
@@ -540,12 +535,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		FreenetURI furi = null;
 
 		try {
-			furi = new FreenetURI(key);
-			if ("USK".equals(furi.getKeyType())) {
-				USK tempUSK = USK.create(furi);
-				ClientKey tempKey = tempUSK.getSSK();
-				furi = tempKey.getURI();
-			}
+			furi = sanitizeURI(errors, key);
 
 			if (zip)
 				metadata = zipManifestGet(furi);
@@ -567,7 +557,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 		if (errors.size() > 0) {
 			contentNode.addChild(createErrorBox(errors, null, null));
-			contentNode.addChild(createUriBox(furi.toString(false, false), hexWidth, automf, deep, errors));
+			contentNode.addChild(createUriBox(((furi==null)?"":furi.toString(false, false)), hexWidth, automf, deep, errors));
 			return pageNode.generate();
 		}
 
@@ -913,5 +903,35 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 	public long getRealVersion() {
 		return Version.version;
+	}
+	
+	private FreenetURI sanitizeURI(List<String> errors, String key) throws MalformedURLException {
+		if (key == null) throw new NullPointerException();
+		
+		FreenetURI tempURI = new FreenetURI(key);
+		
+		//get rid of metas, useles
+		if (tempURI.hasMetaStrings()) {
+			if (errors != null) {
+				tempURI = tempURI.setMetaString(null);
+				errors.add("URI did contain meta strings, removed it for you");
+			} else {
+				throw new MalformedURLException("URIs with meta strings not supported");
+			}
+		}
+		
+		// turn USK into SSK
+		if (tempURI.isUSK()) {
+			if (errors != null) {
+				USK tempUSK = USK.create(tempURI);
+				ClientKey tempKey = tempUSK.getSSK();
+				tempURI = tempKey.getURI();
+				errors.add("URI was an USK, converted it to SSK for you");
+			} else {
+				throw new MalformedURLException("USK not supported, use underlaying SSK insted.");
+			}
+		}
+		
+		return tempURI;
 	}
 }
