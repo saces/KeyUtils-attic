@@ -641,7 +641,23 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 			nextTableCell = htmlTableRow.addChild("td");
 
-			if (md.isArchiveInternalRedirect()) {
+			if (md.isSimpleSplitfile()) {
+				nextTableCell.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
+				nextTableCell = htmlTableRow.addChild("td");
+				if (md.isCompressed()) {
+					nextTableCell.addChild("#", Long.toString(md.uncompressedDataLength()));
+				} else {
+					nextTableCell.addChild("#", Long.toString(md.dataLength()));
+				}
+				nextTableCell = htmlTableRow.addChild("td");
+				nextTableCell.addChild("#", md.getMIMEType());
+				addEmptyCell(htmlTableRow);
+			} else if (md.isSplitfile()) {
+				nextTableCell.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
+				addEmptyCell(htmlTableRow);
+				addEmptyCell(htmlTableRow);
+				addEmptyCell(htmlTableRow);
+			} else if (md.isArchiveInternalRedirect()) {
 				nextTableCell.addChild(new HTMLNode("a", "href", "/" + furi + "/" + fname, fname));
 				addEmptyCell(htmlTableRow);
 				nextTableCell = htmlTableRow.addChild("td");
@@ -719,22 +735,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 						//System.out.println("NO! ML target: " + mlUri.toString(false, false));
 					}
 				}
-			} else if (md.isSimpleSplitfile()) {
-				nextTableCell.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
-				nextTableCell = htmlTableRow.addChild("td");
-				if (md.isCompressed()) {
-					nextTableCell.addChild("#", Long.toString(md.uncompressedDataLength()));
-				} else {
-					nextTableCell.addChild("#", Long.toString(md.dataLength()));
-				}
-				nextTableCell = htmlTableRow.addChild("td");
-				nextTableCell.addChild("#", md.getMIMEType());
-				addEmptyCell(htmlTableRow);
-			} else if (md.isSplitfile()) {
-				nextTableCell.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
-				addEmptyCell(htmlTableRow);
-				addEmptyCell(htmlTableRow);
-				addEmptyCell(htmlTableRow);
 			} else {
 				nextTableCell.addChild("#", fname);
 				nextTableCell = htmlTableRow.addChild("td");
