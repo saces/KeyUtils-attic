@@ -23,6 +23,7 @@ import com.db4o.ObjectContainer;
 
 import freenet.client.ArchiveContext;
 import freenet.client.ClientMetadata;
+import freenet.client.DefaultMIMETypes;
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
@@ -43,6 +44,7 @@ import freenet.keys.FreenetURI;
 import freenet.l10n.L10n.LANGUAGE;
 import freenet.node.LowLevelGetException;
 import freenet.node.RequestClient;
+import freenet.pluginmanager.DownloadPluginHTTPException;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
 import freenet.pluginmanager.FredPluginHTTP;
@@ -61,6 +63,7 @@ import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.compress.Compressor.COMPRESSOR_TYPE;
+import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
 
 /**
@@ -75,6 +78,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	public String handleHTTPGet(HTTPRequest request) throws PluginHTTPException {
 		String uri;
 		String type;
+		String action;
 		boolean automf;
 		boolean deep;
 		int hexWidth;
@@ -85,12 +89,14 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			automf = request.getParam("automf").length() > 0;
 			deep = request.getParam("deep").length() > 0;
 			hexWidth = request.getIntParam("hexWidth", 32);
+			action = request.getParam("action");
 		} else {
 			uri = null;
 			type = null;
 			automf = true;
 			deep = true;
 			hexWidth = 32;
+			action = "";
 		}
 
 		List<String> errors = new LinkedList<String>();
@@ -98,6 +104,16 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
 			hexWidth = 32;
 		}
+		
+		if ("download".equals(action)) {
+			byte[] data = doDownload(errors, uri);
+			if (errors.size()==0) {
+				throw new DownloadPluginHTTPException(data, "plugindownload", DefaultMIMETypes.DEFAULT_MIME_TYPE);
+			} else {
+				return makeMainPage(errors, uri, hexWidth, false, deep);
+			}	
+		}
+		
 		if ("ZIPmanifest".equals(type)) {
 			return makeManifestPage(errors, uri, true, false, hexWidth, automf, deep);
 		}
@@ -231,6 +247,52 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public void terminate() {
+	}
+
+	private byte[] doDownload(List<String> errors, String key) {
+		
+		if (errors.size() > 0) {
+			return null;
+		}
+		if (key == null || (key.trim().length() == 0)) {
+			errors.add("Are you jokingly? Empty URI");
+			return null;
+		}
+		try {
+			FreenetURI furi = sanitizeURI(errors, key);
+			GetResult getresult = simpleGet(m_pr, furi);
+			if (getresult.isMetaData()) {
+				return unrollMetadata(Metadata.construct(getresult.getData()));
+			} else {
+				return BucketTools.toByteArray(getresult.getData());
+			}
+		} catch (MalformedURLException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (LowLevelGetException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (MetadataParseException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (IOException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (FetchException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (KeyListenerConstructionException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private byte[] unrollMetadata(Metadata md) throws MalformedURLException, IOException, LowLevelGetException, FetchException, MetadataParseException, KeyListenerConstructionException {
+		
+		byte[] result = null;
+		result = BucketTools.toByteArray(splitGet(md).asBucket());
+		return result;
 	}
 
 	private static GetResult simpleGet(PluginRespirator pr, FreenetURI uri) throws MalformedURLException, LowLevelGetException {
