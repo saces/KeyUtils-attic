@@ -63,7 +63,6 @@ import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.compress.Compressor.COMPRESSOR_TYPE;
-import freenet.support.io.ArrayBucket;
 import freenet.support.io.BucketTools;
 
 /**
