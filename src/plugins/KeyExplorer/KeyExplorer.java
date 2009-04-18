@@ -40,7 +40,6 @@ import freenet.clients.http.PageMaker;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
-import freenet.keys.USK;
 import freenet.l10n.L10n.LANGUAGE;
 import freenet.node.LowLevelGetException;
 import freenet.node.RequestClient;
