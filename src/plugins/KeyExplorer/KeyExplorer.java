@@ -104,7 +104,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			hexWidth = 32;
 		}
 		
-		if ("download".equals(action)) {
+		if ("splitdownload".equals(action)) {
 			byte[] data = doDownload(errors, uri);
 			if (errors.size()==0) {
 				throw new DownloadPluginHTTPException(data, "plugindownload", DefaultMIMETypes.DEFAULT_MIME_TYPE);
@@ -261,7 +261,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			FreenetURI furi = sanitizeURI(errors, key);
 			GetResult getresult = simpleGet(m_pr, furi);
 			if (getresult.isMetaData()) {
-				return unrollMetadata(Metadata.construct(getresult.getData()));
+				return unrollMetadata(errors, Metadata.construct(getresult.getData()));
 			} else {
 				return BucketTools.toByteArray(getresult.getData());
 			}
@@ -287,8 +287,12 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		return null;
 	}
 
-	private byte[] unrollMetadata(Metadata md) throws MalformedURLException, IOException, LowLevelGetException, FetchException, MetadataParseException, KeyListenerConstructionException {
+	private byte[] unrollMetadata(List<String> errors, Metadata md) throws MalformedURLException, IOException, LowLevelGetException, FetchException, MetadataParseException, KeyListenerConstructionException {
 		
+		if (!md.isSplitfile()) {
+			errors.add("Unsupported Metadata: Not a Splitfile");
+			return null;
+		}
 		byte[] result = null;
 		result = BucketTools.toByteArray(splitGet(md).asBucket());
 		return result;
@@ -848,31 +852,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 	public String getVersion() {
 		return "0.4α " + Version.svnRevision;
-	}
-
-	// unroll until it hit a ARCHIVE_MANIFEST, return this
-	private Metadata archiveManifestGet(FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
-		GetResult res = simpleGet(m_pr, uri);
-		if (!res.isMetaData()) {
-			throw new MetadataParseException("Uri did not point to metadata " + uri);
-		}
-		Metadata md = Metadata.construct(res.getData());
-		if (md.isArchiveManifest())
-			return md;
-		return archiveManifestGet(md);
-	}
-
-	private Metadata archiveManifestGet(Metadata md) throws MetadataParseException, LowLevelGetException, IOException {
-		// GetResult res = simpleGet(uri);
-		// if (!res.isMetaData()) {
-		// throw new MetadataParseException("Uri did not point to metadata " +
-		// uri);
-		// }
-		// Metadata md = Metadata.construct(res.getData());
-		// if (md.isArchiveManifest())
-		// return md;
-		// return archiveManifestGet(md);
-		return md;
 	}
 
 	public static Metadata simpleManifestGet(PluginRespirator pr, FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
