@@ -50,7 +50,7 @@ public class VerySimpleGetter extends ClientRequester {
 
 	@Override
 	public void notifyClients(ObjectContainer container, ClientContext context) {
-		Logger.error(this, "TODO?", new Error("TODO?"));
+		// progress, ignore Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
 	@Override
