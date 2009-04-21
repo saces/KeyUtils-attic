@@ -10,6 +10,7 @@ import freenet.client.async.ClientGetState;
 import freenet.client.async.ClientRequester;
 import freenet.keys.FreenetURI;
 import freenet.node.RequestClient;
+import freenet.support.LogThresholdCallback;
 import freenet.support.Logger;
 
 /**
@@ -17,6 +18,18 @@ import freenet.support.Logger;
  *
  */
 public class VerySimpleGetter extends ClientRequester {
+	
+	private static volatile boolean logDEBUG;
+	
+	static {
+		Logger.registerLogThresholdCallback(new LogThresholdCallback() {
+			
+			@Override
+			public void shouldUpdate() {
+				logDEBUG = Logger.shouldLog(Logger.DEBUG, this);
+			}
+		});
+	}
 
 	private FreenetURI uri;
 
@@ -56,6 +69,11 @@ public class VerySimpleGetter extends ClientRequester {
 	@Override
 	public void onTransition(ClientGetState oldState, ClientGetState newState, ObjectContainer container) {
 		Logger.error(this, "TODO?", new Error("TODO?"));
+	}
+
+	@Override
+	protected void innerToNetwork(ObjectContainer container, ClientContext context) {
+		if (logDEBUG) Logger.debug(this, "Request goes out to network now.");
 	}
 
 }
