@@ -322,11 +322,11 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				// TODO Auto-generated method stub
 			}
 
-			public void onExpectedMIME(String mime, ObjectContainer container) {
+			public void onExpectedMIME(String mime, ObjectContainer container, ClientContext context) {
 				// TODO Auto-generated method stub
 			}
 
-			public void onExpectedSize(long size, ObjectContainer container) {
+			public void onExpectedSize(long size, ObjectContainer container, ClientContext context) {
 				// TODO Auto-generated method stub
 			}
 
