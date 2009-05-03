@@ -753,12 +753,12 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 							Metadata subMd = simpleManifestGet(m_pr, mlUri);
 							if (subMd.isMultiLevelMetadata()) {
 								//System.out.println("is ML target: " + mlUri.toString(false, false));
-								subMd.getResolvedURI();
 								if (subMd.isSingleFileRedirect()) {
 									//System.out.println("try get ML target: " + mlUri.toString(false, false));
 									subMd = splitManifestGet(subMd);
-									parseMetadata(htmlTable, subMd.getDocuments(), fname + "/", furi, errors);
-									//System.out.println("brrrstlhipf!!!!!!!!!!");
+									if (subMd.isSimpleManifest) {
+										parseMetadata(htmlTable, subMd.getDocuments(), fname + "/", furi, errors);
+									}
 								} else {
 									//System.out.println("seems splitfile ML target: " + mlUri.toString(false, false));
 									//System.out.println("try this: " + subMd.getSingleTarget());
