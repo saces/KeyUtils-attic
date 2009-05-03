@@ -756,7 +756,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 								if (subMd.isSingleFileRedirect()) {
 									//System.out.println("try get ML target: " + mlUri.toString(false, false));
 									subMd = splitManifestGet(subMd);
-									if (subMd.isSimpleManifest) {
+									if (subMd.isSimpleManifest()) {
 										parseMetadata(htmlTable, subMd.getDocuments(), fname + "/", furi, errors);
 									}
 								} else {
