@@ -8,11 +8,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Formatter;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -246,6 +244,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public void terminate() {
+		// TODO kill all 'session handles'
+		// TODO kill all requests
 	}
 
 	private byte[] doDownload(List<String> errors, String key) {
@@ -471,77 +471,88 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				if (md != null) {
 					HTMLNode metaBox = m_pm.getInfobox("Decomposed metadata");
 
-					metaBox.addChild("#", "Document type:");
+					metaBox.addChild("#", "Document type:\u00a0");
+					if (md.isSimpleRedirect()) {
+						metaBox.addChild("#", "SimpleRedirect");
+					} else if (md.isSimpleManifest()) {
+						metaBox.addChild("#", "SimpleManifest");
+					} else if (md.isArchiveInternalRedirect()) {
+						metaBox.addChild("#", "ArchiveInternalRedirect");
+					} else if (md.isArchiveMetadataRedirect()) {
+						metaBox.addChild("#", "ArchiveMetadataRedirect");
+					} else if (md.isArchiveManifest()) {
+						metaBox.addChild("#", "ArchiveManifest");
+					} else if (md.isMultiLevelMetadata()) {
+						metaBox.addChild("#", "MultiLevelMetadata");
+					} else {
+						metaBox.addChild("#", "<Unknown document type>");
+					}
 					metaBox.addChild("%", "<BR />");
-
-					if (md.isMultiLevelMetadata()) {
-						metaBox.addChild("#", "Document type: MultiLevelMetadata");
+					
+					if (md.haveFlags()) {
+						metaBox.addChild("#", "Flags:\u00a0");
+						boolean isFirst = true;
+						
+						if (md.isSplitfile()) {
+							metaBox.addChild("#", "SplitFile");
+							isFirst = false;
+						}
+						if (md.isCompressed()) {
+							if (isFirst)
+								isFirst = false;
+							else
+								metaBox.addChild("#", "\u00a0");
+							metaBox.addChild("#", "Compressed ("+ md.getCompressionCodec().name + ")");
+						}
+						if (isFirst)
+							metaBox.addChild("#", "<No flag set>");
+					}
+					metaBox.addChild("%", "<BR />");
+					
+					if (md.isCompressed()) {
+						metaBox.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes.");
+					} else {
+						metaBox.addChild("#", "Uncompressed");
+					}
+					
+					metaBox.addChild("%", "<BR />");
+					
+					if (md.isSplitfile()) {
+						metaBox.addChild("#", "Splitfile size\u00a0=\u00a0" + md.dataLength() + " bytes.");
 						metaBox.addChild("%", "<BR />");
 					}
+
+					metaBox.addChild("#", "Options:");
+					metaBox.addChild("%", "<BR />");
+
 					if (md.isSimpleManifest()) {
-						metaBox.addChild("#", "Document type: SimpleManifest");
-						metaBox.addChild("#", "\u00a0");
 						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=simplemanifest&key=" + furi, "reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
-
-					if (md.isSplitfile()) {
-						metaBox.addChild("#", "Document type: Splitfile");
-						metaBox.addChild("%", "<BR />");
-					}
-
-					if (md.isSimpleSplitfile()) {
-						metaBox.addChild("#", "Document type: SimpleSplitfile");
-						metaBox.addChild("%", "<BR />");
-					}
-
-					if (md.isSingleFileRedirect()) {
-						metaBox.addChild("#", "Document type: SingleFileRedirect");
-						metaBox.addChild("#", "\u00a0");
-						FreenetURI uri = md.getSingleTarget();
-						if (uri != null) {
-							String sfrUri = md.getSingleTarget().toString(false, false);
-							metaBox.addChild("#", sfrUri);
-							metaBox.addChild("#", "\u00a0");
-							metaBox.addChild(new HTMLNode("a", "href", "/?key=" + sfrUri, "open"));
-							metaBox.addChild("#", "\u00a0");
-							metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + sfrUri, "explore"));
-						} else {
-							metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));
-						}
-						metaBox.addChild("%", "<BR />");
-					}
-
-					if (md.isArchiveInternalRedirect()) {
-						metaBox.addChild("#", "Document type: ArchiveInternalRedirect");
-						metaBox.addChild("%", "<BR />");
-					}
-
 					if (md.isArchiveManifest()) {
-						metaBox.addChild("#", "Document type: ArchiveManifest");
-						metaBox.addChild("#", "\u00a0");
 						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=" + md.getArchiveType().name() + "manifest&key=" + furi,
 								"reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
 
-					if (!md.isCompressed()) {
-						metaBox.addChild("#", "Uncompressed");
+					FreenetURI uri = md.getSingleTarget();
+					if (uri != null) {
+						String sfrUri = uri.toString(false, false);
+						metaBox.addChild("#", sfrUri);
+						metaBox.addChild("#", "\u00a0");
+						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + sfrUri, "open"));
+						metaBox.addChild("#", "\u00a0");
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + sfrUri, "explore"));
 					} else {
-						metaBox.addChild("#", "Compressed (codec " + md.getCompressionCodec().name + ")");
-						metaBox.addChild("%", "<BR />");
-						metaBox.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes");
+						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));
 					}
-
 					metaBox.addChild("%", "<BR />");
-
-					metaBox.addChild("#", "Data size\u00a0=\u00a0" + md.dataLength());
-					metaBox.addChild("%", "<BR />");
-
-					if (md.isResolved()) {
-						metaBox.addChild("#", "Resolved URI:\u00a0=\u00a0" + md.getResolvedURI());
+					
+					if ((uri == null) && md.isSplitfile() ) {
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
 						metaBox.addChild("%", "<BR />");
 					}
+
 					contentNode.addChild(metaBox);
 				}
 			}
@@ -604,7 +615,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			if (zip)
 				metadata = zipManifestGet(furi);
 			else if (tar)
-				metadata = tarManifestGet(furi);
+				metadata = tarManifestGet(furi, ".metadata");
 			else
 				metadata = simpleManifestGet(m_pr, furi);
 		} catch (MalformedURLException e) {
@@ -629,10 +640,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		String title = "Key: " + furi.toString(false, false) + "\u00a0(Manifest)";
 		HTMLNode listBox = m_pm.getInfobox(title);
 
-		HashMap<String, Metadata> docs = metadata.getDocuments();
-
-		// HTMLNode contentTable = contentNode.addChild("table", "class",
-		// "column");
+		// HTMLNode contentTable = contentNode.addChild("table", "class", "column");
 		HTMLNode contentTable = listBox.addChild("table");
 		HTMLNode tableHead = contentTable.addChild("thead");
 		HTMLNode tableRow = tableHead.addChild("tr");
@@ -649,159 +657,313 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		nextTableCell = tableRow.addChild("th");
 		nextTableCell.addChild("#", "Target");
 
-		parseMetadata(contentTable, docs, "", furi.toString(false, false), errors);
+		parseMetadataItem(contentTable, "", metadata, "", furi.toString(false, false), errors, deep, 0, -1);
 		if (errors.size() > 0) {
 			contentNode.addChild(createErrorBox(errors, null, null));
 		}
 		contentNode.addChild(listBox);
 		return pageNode.generate();
-
 	}
 
-	private void addEmptyCell(HTMLNode tableRow) {
-		HTMLNode tableCell = tableRow.addChild("td");
-		tableCell.addChild("#", "\u00a0");
-	}
-
-	private void parseMetadata(HTMLNode htmlTable, HashMap<String, Metadata> docs, String prefix, String furi, List<String> errors) {
-		Set<String> s = docs.keySet();
-		Iterator<String> i = s.iterator();
-		while (i.hasNext()) {
-			HTMLNode htmlTableRow = htmlTable.addChild("tr");
-			addEmptyCell(htmlTableRow);
-			HTMLNode nextTableCell = htmlTableRow.addChild("td");
-			String name = i.next();
-			Metadata md = docs.get(name);
-			String fname = prefix + name;
-
-			if (md.isArchiveInternalRedirect())
-				nextTableCell.addChild("#", "(container)\u00a0");
-			if (md.isArchiveManifest())
-				nextTableCell.addChild("#", "(archive)\u00a0");
-			if (md.isCompressed())
-				nextTableCell.addChild("#", "(compress)\u00a0");
-			if (md.isMultiLevelMetadata())
-				nextTableCell.addChild("#", "(multilevel)\u00a0");
-			if (md.isResolved())
-				nextTableCell.addChild("#", "(resolved)\u00a0");
-			if (md.isSimpleManifest())
-				nextTableCell.addChild("#", "(simple-manifest)\u00a0");
-			if (md.isSimpleSplitfile())
-				nextTableCell.addChild("#", "(simple-splitf)\u00a0");
-			else if (md.isSplitfile())
-				nextTableCell.addChild("#", "(splitf)\u00a0");
-			if (md.isSingleFileRedirect())
-				nextTableCell.addChild("#", "(extern)\u00a0");
-
-			nextTableCell = htmlTableRow.addChild("td");
-
-			if (md.isSimpleSplitfile()) {
-				nextTableCell.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
-				nextTableCell = htmlTableRow.addChild("td");
-				if (md.isCompressed()) {
-					nextTableCell.addChild("#", Long.toString(md.uncompressedDataLength()));
-				} else {
-					nextTableCell.addChild("#", Long.toString(md.dataLength()));
-				}
-				nextTableCell = htmlTableRow.addChild("td");
-				nextTableCell.addChild("#", md.getMIMEType());
-				addEmptyCell(htmlTableRow);
-			} else if (md.isSplitfile()) {
-				nextTableCell.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
-				addEmptyCell(htmlTableRow);
-				addEmptyCell(htmlTableRow);
-				addEmptyCell(htmlTableRow);
-			} else if (md.isArchiveInternalRedirect()) {
-				nextTableCell.addChild(new HTMLNode("a", "href", "/" + furi + "/" + fname, fname));
-				addEmptyCell(htmlTableRow);
-				nextTableCell = htmlTableRow.addChild("td");
-				nextTableCell.addChild("#", md.getMIMEType());
-				addEmptyCell(htmlTableRow);
-			} else if (md.isSingleFileRedirect()) {
-				nextTableCell.addChild(new HTMLNode("a", "href", "/?key=" + furi + "/" + fname, fname));
-				addEmptyCell(htmlTableRow);
-				nextTableCell = htmlTableRow.addChild("td");
-				nextTableCell.addChild("#", md.getMIMEType());
-				nextTableCell = htmlTableRow.addChild("td");
-				if (md.isArchiveManifest()) {
-					String containerTarget = md.getSingleTarget().toString(false, false);
-					nextTableCell.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=" + md.getArchiveType().name() + "manifest&key=" + containerTarget, containerTarget));
-					Metadata subMd;
-					if (md.getArchiveType() == ARCHIVE_TYPE.TAR) {
-						try {
-							subMd = tarManifestGet(md.getSingleTarget());
-							parseMetadata(htmlTable, subMd.getDocuments(), fname + "/", furi, errors);
-						} catch (FetchException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (MetadataParseException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				} else {
-					nextTableCell.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false)));
-					// Multi level stuff
-
-					FreenetURI mlUri = md.getSingleTarget();
-					if ((mlUri.getExtra()[2] & 0x02) != 0) { // control document?
-						//System.out.println("May ML target: " + mlUri.toString(false, false));
-						try {
-							Metadata subMd = simpleManifestGet(m_pr, mlUri);
-							if (subMd.isMultiLevelMetadata()) {
-								//System.out.println("is ML target: " + mlUri.toString(false, false));
-								if (subMd.isSingleFileRedirect()) {
-									//System.out.println("try get ML target: " + mlUri.toString(false, false));
-									subMd = splitManifestGet(subMd);
-									if (subMd.isSimpleManifest()) {
-										parseMetadata(htmlTable, subMd.getDocuments(), fname + "/", furi, errors);
-									}
-								} else {
-									//System.out.println("seems splitfile ML target: " + mlUri.toString(false, false));
-									//System.out.println("try this: " + subMd.getSingleTarget());
-								}
-							} else {
-								//System.out.println("no ML target: " + mlUri.toString(false, false));
-							}
-						} catch (MalformedURLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (LowLevelGetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (MetadataParseException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (FetchException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (KeyListenerConstructionException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					} else {
-						//System.out.println("NO! ML target: " + mlUri.toString(false, false));
-					}
-				}
-			} else {
-				nextTableCell.addChild("#", fname);
-				nextTableCell = htmlTableRow.addChild("td");
-				nextTableCell.addChild("#", "(");
-				nextTableCell.addChild("#", Integer.toString(md.getDocuments().size()));
-				nextTableCell.addChild("#", " Items)");
-				addEmptyCell(htmlTableRow);
-				addEmptyCell(htmlTableRow);
-				parseMetadata(htmlTable, md.getDocuments(), fname + "/", furi, errors);
+	private void parseMetadataItem(HTMLNode htmlTable, String name, Metadata md, String prefix, String furi, List<String> errors, boolean deep, int nestedLevel, int subLevel) {
+		
+		String fname = prefix + name;
+		
+		HTMLNode htmlTableRow = htmlTable.addChild("tr");
+		htmlTableRow.addChild(makeNestedDeepCell(nestedLevel, subLevel));
+		htmlTableRow.addChild(makeTypeCell(md));
+		
+		// the clear & easy first
+		if (md.isSimpleManifest()) {
+			// a subdir
+			HashMap<String, Metadata> docs = md.getDocuments();
+			Metadata defaultDoc = null;
+			try {
+				defaultDoc = md.getDefaultDocument();
+			} catch (MetadataParseException e) {
+				//impossible;
 			}
+			
+			htmlTableRow.addChild(makeNameCell(prefix, name));
+			htmlTableRow.addChild(makeCell("(" + Integer.toString(docs.size())+" Items)"));
+			htmlTableRow.addChild(makeEmptyCell());
+			htmlTableRow.addChild(makeEmptyCell());
+			
+			if (defaultDoc != null) {
+				parseMetadataItem(htmlTable, "/", defaultDoc, prefix, furi, errors, deep, nestedLevel, subLevel+1);
+			}
+			
+			for (String iname: docs.keySet()) {
+				Metadata doc = docs.get(iname);
+				parseMetadataItem(htmlTable, iname, doc, prefix+name+'/', furi, errors, deep, nestedLevel, subLevel+1);
+			}
+			return;
 		}
+		
+		if (md.isArchiveInternalRedirect()) {
+			HTMLNode cell = htmlTableRow.addChild("td");
+			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
+			htmlTableRow.addChild(makeEmptyCell());
+			htmlTableRow.addChild(makeMimeCell(md));
+			htmlTableRow.addChild(makeCell(md.getArchiveInternalName()));
+			return;
+		}
+		
+		if (md.isMultiLevelMetadata()) {
+			htmlTableRow.addChild(makeNameCell(prefix, name));
+			htmlTableRow.addChild(makeSizeCell(md));
+			htmlTableRow.addChild(makeMimeCell(md));
+			htmlTableRow.addChild(makeCell("Somewhat seriously wrong"));
+		}
+
+		if (md.isSimpleRedirect()) {
+			HTMLNode cell = htmlTableRow.addChild("td");
+			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
+			htmlTableRow.addChild(makeSizeCell(md));
+			htmlTableRow.addChild(makeMimeCell(md));
+			if (md.isSingleFileRedirect())
+				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
+			else
+				htmlTableRow.addChild(makeEmptyCell());
+			
+			// the row for the item itself is written, now look inside for multi level md
+			if (deep && md.isNoMimeEnabled() && md.isSingleFileRedirect()) {
+				// looks like possible ml
+				FreenetURI mlUri = md.getSingleTarget();
+				// is control document?
+				if ((mlUri.getExtra()[2] & 0x02) != 0) { 
+					// control doc, look inside for ML
+					Exception err;
+					try {
+						Metadata subMd = simpleManifestGet(m_pr, mlUri);
+						if (subMd.isMultiLevelMetadata()) {
+							// really multilevel, fetch it
+							subMd = splitManifestGet(subMd);
+							parseMetadataItem(htmlTable, "", subMd, prefix+name, furi, errors, deep, nestedLevel+1, -1);
+						}
+						return;
+					} catch (MetadataParseException e) {
+						err = e;
+					} catch (LowLevelGetException e) {
+						err = e;
+					} catch (IOException e) {
+						err = e;
+					} catch (FetchException e) {
+						err = e;
+					} catch (KeyListenerConstructionException e) {
+						err = e;
+					}
+					htmlTable.addChild(makeErrorRow(err));
+				}
+			}
+			return;	
+		}
+		
+		if (md.isArchiveMetadataRedirect()) {
+			htmlTableRow.addChild(makeNameCell(prefix, name));
+			htmlTableRow.addChild(makeSizeCell(md));
+			htmlTableRow.addChild(makeMimeCell(md));
+			htmlTableRow.addChild(makeCell(md.getArchiveInternalName()));
+
+			if (deep) {
+				//grab data;
+				FreenetURI u;
+				Metadata metadata;
+				Exception err;
+				try {
+					u = new FreenetURI(furi);
+					metadata = tarManifestGet(u, md.getArchiveInternalName());
+					//parse into
+					parseMetadataItem(htmlTable, "", metadata, prefix+name, furi, errors, deep, nestedLevel+1, -1);
+					return;
+				} catch (MalformedURLException e) {
+					err = e;
+				} catch (FetchException e) {
+					err = e;
+				} catch (MetadataParseException e) {
+					err = e;
+				} catch (IOException e) {
+					err = e;
+				}
+				htmlTable.addChild(makeErrorRow(err));
+			}
+			return;
+		}
+		
+		if (md.isArchiveManifest()) {
+			htmlTableRow.addChild(makeNameCell(prefix, name));
+			htmlTableRow.addChild(makeSizeCell(md));
+			htmlTableRow.addChild(makeMimeCell(md));
+		
+			if (md.isSingleFileRedirect()) {
+				String containerTarget = md.getSingleTarget().toString(false, false);
+				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=" + md.getArchiveType().name() + "manifest&key=" + containerTarget, containerTarget)));
+			} else {
+				htmlTableRow.addChild(makeEmptyCell());
+			}
+			if (deep) {
+				Metadata subMd;
+				Exception err;
+				// TODO turn "smash with stones" style into "rocket science"
+				if (md.getArchiveType() == ARCHIVE_TYPE.TAR) {
+					try {
+						if (md.isSplitfile())
+							subMd = tarManifestGet(md, ".metadata");
+						else
+							subMd = tarManifestGet(md.getSingleTarget(), ".metadata");
+						parseMetadataItem(htmlTable, "", subMd, prefix+name, furi, errors, deep, nestedLevel+1, -1);
+						return;
+					} catch (FetchException e) {
+						err = e;
+					} catch (MetadataParseException e) {
+						err = e;
+					} catch (IOException e) {
+						err = e;
+					}
+					htmlTable.addChild(makeErrorRow(err));
+				}
+			}
+			return;
+		}
+		
+		// in theory this is 'unreachable code'
+		htmlTableRow.addChild(makeNameCell(prefix, name));
+		htmlTableRow.addChild(makeSizeCell(md));
+		htmlTableRow.addChild(makeMimeCell(md));
+		htmlTableRow.addChild(makeCell("(Unknown dokument type)"));
 	}
 
+	private HTMLNode makeErrorRow(Exception e) {
+		return makeErrorRow(e.getLocalizedMessage());
+	}
+		
+	private HTMLNode makeErrorRow(String msg) {
+		HTMLNode row = new HTMLNode("tr");
+		row.addChild(makeEmptyCell());
+		row.addChild(makeEmptyCell());
+		row.addChild(makeCell("<ERROR>"));
+		row.addChild(makeEmptyCell());
+		row.addChild(makeEmptyCell());
+		if (msg != null)
+			row.addChild(makeCell(msg));
+		else
+			row.addChild(makeEmptyCell());
+		return row;
+	}
+	
+	private HTMLNode makeEmptyCell() {
+		HTMLNode cell = new HTMLNode("td");
+		cell.addChild("#", "\u00a0");
+		return cell;
+	}
+	
+	private HTMLNode makeCell(String content) {
+		HTMLNode cell = new HTMLNode("td");
+		cell.addChild("#", content);
+		return cell;
+	}
+	
+	private HTMLNode makeCell(HTMLNode content) {
+		HTMLNode cell = new HTMLNode("td");
+		cell.addChild(content);
+		return cell;
+	}
+	
+	private HTMLNode makeSizeCell(Metadata md) {
+		long size;
+		if (md.isCompressed())
+			size = md.uncompressedDataLength();
+		else if (md.isSplitfile())
+			size = md.dataLength();
+		else
+			return makeEmptyCell();
+		return makeCell(Long.toString(size)+"\u00a0B");
+	}
+	
+	private HTMLNode makeNameCell(String prefix, String name) {
+		HTMLNode cell = new HTMLNode("td");
+		if ((name == null)||(name.trim().length()==0))
+			cell.addChild("#", "\u00a0");
+		else
+			if ((prefix != null))
+				cell.addChild("#", prefix + name);
+			else
+				cell.addChild("#", name);
+		return cell;
+	}
+	
+	private HTMLNode makeMimeCell(Metadata md) {
+		HTMLNode cell = new HTMLNode("td");
+		if(md.isNoMimeEnabled())
+			cell.addChild("#", "<NoMime>");
+		else
+			cell.addChild("#", md.getMIMEType());
+		return cell;
+	}
+
+	private HTMLNode makeNestedDeepCell(int nestedLevel, int subLevel) {
+		HTMLNode cell = new HTMLNode("td");
+		cell.addChild("span", "title", "nested level", Integer.toString(nestedLevel));
+		cell.addChild("#", "-");
+		cell.addChild("span", "title", "sub level inside container/manifest", ((subLevel==-1)?"R":Integer.toString(subLevel)));
+		return cell;
+	}
+	
+	private HTMLNode makeTypeCell(Metadata md) {
+		HTMLNode cell = new HTMLNode("td");
+		
+		if (md.isArchiveInternalRedirect() || md.isArchiveMetadataRedirect())
+			cell.addChild("span", "title", "All data are in container", "[c]");
+		else if (md.getSingleTarget() != null)
+			cell.addChild("span", "title", "Pointer to external meta+data (FreenetURI)", "[e]");
+		else if (md.isSimpleManifest())
+			cell.addChild("span", "title", "A subdirectory inside container", "[s]");
+		else	
+			cell.addChild("span", "title", "Metadata are in container, but points to external data", "[m]");
+		
+		cell.addChild("#", "\u00a0");
+		
+		if (md.isSimpleRedirect()) {
+			cell.addChild("span", "title", "Simple redirect", "SRE");
+		} else if (md.isSimpleManifest()) {
+			cell.addChild("span", "title", "Simple manifest", "SMF");
+		} else if (md.isArchiveInternalRedirect()) {
+			cell.addChild("span", "title", "Archive internal redirect", "AIR");
+		} else if (md.isArchiveMetadataRedirect()) {
+			cell.addChild("span", "title", "Archive metadata redirect", "AMR");
+		} else if (md.isArchiveManifest()) {
+			cell.addChild("span", "title", "Archive redirect", "ARE");
+		} else if (md.isMultiLevelMetadata()) {
+			cell.addChild("span", "title", "Multi level metadata", "MLM");
+		} else {
+			cell.addChild("span", "title", "Unknown document type", "?");
+		}
+		
+		cell.addChild("#", "\u00a0");
+		
+		if (md.haveFlags()) {
+			boolean isFirst = true;
+			
+			if (md.isSplitfile()) {
+				cell.addChild("#", "(");
+				cell.addChild("span", "title", "Split file", "SF");
+				isFirst = false;
+			}
+			if (md.isCompressed()) {
+				if (isFirst) {
+					cell.addChild("#", "(");
+					isFirst = false;
+				}
+				else
+					cell.addChild("#", "\u00a0");
+				cell.addChild("span", "title", "Compressed", "CP");
+			}
+			if (!isFirst)
+				cell.addChild("#", ")\u00a0");
+		}
+		return cell;
+	}
+	
 	private HTMLNode createUriBox(String uri, int hexWidth, boolean automf, boolean deep, List<String> errors) {
 		HTMLNode browseBox = m_pm.getInfobox("Explore a freenet key");
 		HTMLNode browseContent = m_pm.getContentNode(browseBox);
@@ -851,7 +1013,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public String getVersion() {
-		return "0.4α " + Version.svnRevision;
+		return "0.4β " + Version.svnRevision;
 	}
 
 	public static Metadata simpleManifestGet(PluginRespirator pr, FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
@@ -898,15 +1060,30 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		}
 		throw new FetchException(200, "impossible? no metadata in archive " + uri);
 	}
-
-	private Metadata tarManifestGet(FreenetURI uri) throws FetchException, MetadataParseException, IOException {
+	
+	private Metadata tarManifestGet(Metadata md, String metaName) throws FetchException, MetadataParseException, IOException {
+		FetchResult fr;
+		try {
+			fr = splitGet(md);
+		} catch (LowLevelGetException e) {
+			throw new FetchException(e.code);
+		} catch (KeyListenerConstructionException e) {
+			throw new FetchException(FetchException.INTERNAL_ERROR, e);
+		}
+		return internalTarManifestGet(fr.asBucket(), metaName);
+	}
+	private Metadata tarManifestGet(FreenetURI uri, String metaName) throws FetchException, MetadataParseException, IOException {
 		HighLevelSimpleClient hlsc = m_pr.getHLSimpleClient();
 		FetchContext fctx = hlsc.getFetchContext();
 		fctx.returnZIPManifests = true;
 		FetchWaiter fw = new FetchWaiter();
 		hlsc.fetch(uri, -1, (RequestClient) hlsc, fw, fctx);
 		FetchResult fr = fw.waitForCompletion();
-		TarInputStream zis = new TarInputStream(fr.asBucket().getInputStream());
+		return internalTarManifestGet(fr.asBucket(), metaName);
+	}
+		
+	private Metadata internalTarManifestGet(Bucket data, String metaName) throws IOException, MetadataParseException, FetchException {
+		TarInputStream zis = new TarInputStream(data.getInputStream());
 		TarEntry entry;
 		ByteArrayOutputStream bos;
 		while (true) {
@@ -916,7 +1093,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			if (entry.isDirectory())
 				continue;
 			String name = entry.getName();
-			if (".metadata".equals(name)) {
+			if (metaName.equals(name)) {
 				byte[] buf = new byte[32768];
 				bos = new ByteArrayOutputStream();
 				// Read the element
@@ -928,7 +1105,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				return Metadata.construct(bos.toByteArray());
 			}
 		}
-		throw new FetchException(200, "impossible? no metadata in archive " + uri);
+		throw new FetchException(200, "impossible? no metadata in archive ");
 	}
 
 	public String getString(String key) {
