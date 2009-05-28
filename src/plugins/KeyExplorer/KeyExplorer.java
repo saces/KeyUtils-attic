@@ -35,7 +35,9 @@ import freenet.client.async.ClientGetState;
 import freenet.client.async.GetCompletionCallback;
 import freenet.client.async.KeyListenerConstructionException;
 import freenet.client.async.SplitFileFetcher;
+import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageMaker;
+import freenet.clients.http.PageNode;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
@@ -386,8 +388,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	private String makeMainPage(List<String> errors, String key, int hexWidth, boolean automf, boolean deep) throws PluginHTTPException {
-		HTMLNode pageNode = m_pm.getPageNode("KeyExplorer", null);
-		HTMLNode contentNode = m_pm.getContentNode(pageNode);
+		PageNode page = m_pm.getPageNode("KeyExplorer", null);
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
 
 		byte[] data = null;
 		GetResult getresult = null;
@@ -459,17 +462,15 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			String title = "Key: " + furi.toString(false, false);
 			if (getresult.isMetaData())
 				title = title + "\u00a0(MetaData)";
-			HTMLNode dataBox2 = m_pm.getInfobox(title);
+			HTMLNode dataBox2 = m_pm.getInfobox("#", title, contentNode);
 
 			dataBox2.addChild("%", "<pre lang=\"en\" style=\"font-family: monospace;\">\n");
 			dataBox2.addChild("#", hexDump(data, hexWidth));
 			dataBox2.addChild("%", "\n</pre>");
 
-			contentNode.addChild(dataBox2);
-
 			if (getresult.isMetaData()) {
 				if (md != null) {
-					HTMLNode metaBox = m_pm.getInfobox("Decomposed metadata");
+					HTMLNode metaBox = m_pm.getInfobox("#", "Decomposed metadata", contentNode);
 
 					metaBox.addChild("#", "Document type:\u00a0");
 					if (md.isSimpleRedirect()) {
@@ -552,8 +553,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
 						metaBox.addChild("%", "<BR />");
 					}
-
-					contentNode.addChild(metaBox);
 				}
 			}
 			if (errors.size() > 0)
@@ -602,8 +601,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	private String makeManifestPage(List<String> errors, String key, boolean zip, boolean tar, int hexWidth, boolean automf, boolean deep) {
-		HTMLNode pageNode = m_pm.getPageNode("KeyExplorer", null);
-		HTMLNode contentNode = m_pm.getContentNode(pageNode);
+		PageNode page = m_pm.getPageNode("KeyExplorer", null);
+		HTMLNode pageNode = page.outer;
+		HTMLNode contentNode = page.content;
 
 		Metadata metadata = null;
 
@@ -638,7 +638,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 		contentNode.addChild(createUriBox(furi.toString(false, false), hexWidth, automf, deep, errors));
 		String title = "Key: " + furi.toString(false, false) + "\u00a0(Manifest)";
-		HTMLNode listBox = m_pm.getInfobox(title);
+		InfoboxNode listInfobox = m_pm.getInfobox(title);
+		HTMLNode listBox = listInfobox.content;
 
 		// HTMLNode contentTable = contentNode.addChild("table", "class", "column");
 		HTMLNode contentTable = listBox.addChild("table");
@@ -661,7 +662,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		if (errors.size() > 0) {
 			contentNode.addChild(createErrorBox(errors, null, null));
 		}
-		contentNode.addChild(listBox);
+		contentNode.addChild(listInfobox.outer);
 		return pageNode.generate();
 	}
 
@@ -965,8 +966,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 	
 	private HTMLNode createUriBox(String uri, int hexWidth, boolean automf, boolean deep, List<String> errors) {
-		HTMLNode browseBox = m_pm.getInfobox("Explore a freenet key");
-		HTMLNode browseContent = m_pm.getContentNode(browseBox);
+		InfoboxNode box = m_pm.getInfobox("Explore a freenet key");
+		HTMLNode browseBox = box.outer;
+		HTMLNode browseContent = box.content;
 
 		if (hexWidth < 1 || hexWidth > 1024) {
 			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
@@ -999,7 +1001,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 	private HTMLNode createErrorBox(List<String> errors, FreenetURI retryUri, String extraParams) {
 
-		HTMLNode errorBox = m_pm.getInfobox("infobox-alert", "ERROR");
+		InfoboxNode box = m_pm.getInfobox("infobox-alert", "ERROR");
+		HTMLNode errorBox = box.content;
 		for (String error : errors) {
 			errorBox.addChild("#", error);
 			errorBox.addChild("%", "<BR />");
@@ -1009,7 +1012,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			errorBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer?key="
 					+ ((extraParams == null) ? retryUri : (retryUri + "?" + extraParams)), retryUri.toString(false, false)));
 		}
-		return errorBox;
+		return box.outer;
 	}
 
 	public String getVersion() {
