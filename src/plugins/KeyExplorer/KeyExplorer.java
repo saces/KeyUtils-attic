@@ -715,6 +715,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
 			htmlTableRow.addChild(makeCell("Somewhat seriously wrong"));
+			return;
 		}
 
 		if (md.isSimpleRedirect()) {
