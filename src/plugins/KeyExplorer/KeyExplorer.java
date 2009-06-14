@@ -741,8 +741,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 						if (subMd.isMultiLevelMetadata()) {
 							// really multilevel, fetch it
 							subMd = splitManifestGet(subMd);
-							parseMetadataItem(htmlTable, "", subMd, prefix+name, furi, errors, deep, nestedLevel+1, -1);
 						}
+						parseMetadataItem(htmlTable, "", subMd, prefix+name, furi, errors, deep, nestedLevel+1, -1);
 						return;
 					} catch (MetadataParseException e) {
 						err = e;
