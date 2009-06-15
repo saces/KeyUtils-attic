@@ -80,6 +80,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		String action;
 		boolean automf;
 		boolean deep;
+		boolean ml;
 		int hexWidth;
 
 		if (request.isParameterSet("key")) {
@@ -87,6 +88,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			type = request.getParam("mftype");
 			automf = request.getParam("automf").length() > 0;
 			deep = request.getParam("deep").length() > 0;
+			ml = request.getParam("ml").length() > 0;
 			hexWidth = request.getIntParam("hexWidth", 32);
 			action = request.getParam("action");
 		} else {
@@ -94,6 +96,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			type = null;
 			automf = true;
 			deep = true;
+			ml = true;
 			hexWidth = 32;
 			action = "";
 		}
@@ -109,20 +112,20 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			if (errors.size()==0) {
 				throw new DownloadPluginHTTPException(data, "plugindownload", DefaultMIMETypes.DEFAULT_MIME_TYPE);
 			} else {
-				return makeMainPage(errors, uri, hexWidth, false, deep);
+				return makeMainPage(errors, uri, hexWidth, false, deep, ml);
 			}	
 		}
 		
 		if ("ZIPmanifest".equals(type)) {
-			return makeManifestPage(errors, uri, true, false, hexWidth, automf, deep);
+			return makeManifestPage(errors, uri, true, false, hexWidth, automf, deep, ml);
 		}
 		if ("TARmanifest".equals(type)) {
-			return makeManifestPage(errors, uri, false, true, hexWidth, automf, deep);
+			return makeManifestPage(errors, uri, false, true, hexWidth, automf, deep, ml);
 		}
 		if ("simplemanifest".equals(type)) {
-			return makeManifestPage(errors, uri, false, false, hexWidth, automf, deep);
+			return makeManifestPage(errors, uri, false, false, hexWidth, automf, deep, ml);
 		}
-		return makeMainPage(errors, uri, hexWidth, automf, deep);
+		return makeMainPage(errors, uri, hexWidth, automf, deep, ml);
 	}
 
 	public String handleHTTPPost(HTTPRequest request) throws PluginHTTPException {
@@ -130,12 +133,13 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		int hexWidth = request.getIntPart("hexWidth", 32);
 		boolean automf = request.getPartAsString("automf", 128).length() > 0;
 		boolean deep = request.getPartAsString("deep", 128).length() > 0;
+		boolean ml = request.getPartAsString("ml", 128).length() > 0;
 		List<String> errors = new LinkedList<String>();
 		if (hexWidth < 1 || hexWidth > 1024) {
 			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
 			hexWidth = 32;
 		}
-		return makeMainPage(errors, uri, hexWidth, automf, deep);
+		return makeMainPage(errors, uri, hexWidth, automf, deep, ml);
 	}
 
 	public void handle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) {
@@ -387,7 +391,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		replysender.send(sfs);
 	}
 
-	private String makeMainPage(List<String> errors, String key, int hexWidth, boolean automf, boolean deep) throws PluginHTTPException {
+	private String makeMainPage(List<String> errors, String key, int hexWidth, boolean automf, boolean deep, boolean ml) throws PluginHTTPException {
 		PageNode page = m_pm.getPageNode("KeyExplorer", null);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -401,6 +405,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		if (deep) {
 			extraParams += "&deep=checked";
 		}
+		if (ml) {
+			extraParams += "&ml=checked";
+		}
 		FreenetURI furi = null;
 		FreenetURI retryUri = null;
 
@@ -408,8 +415,15 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			if (key != null && (key.trim().length() > 0)) {
 				furi = sanitizeURI(errors, key);
 				retryUri = furi;
-				getresult = simpleGet(m_pr, furi);
-				data = BucketTools.toByteArray(getresult.getData());
+				if (ml) { // multilevel is requestet
+					Metadata tempMD = simpleManifestGet(m_pr, furi);
+					FetchResult tempResult = splitGet(tempMD);
+					getresult = new GetResult(tempResult.asBucket(), true);
+					data = tempResult.asByteArray();
+				} else { // normal get
+					getresult = simpleGet(m_pr, furi);
+					data = BucketTools.toByteArray(getresult.getData());
+				}
 			}
 		} catch (MalformedURLException e) {
 			errors.add("MalformedURL: " + key);
@@ -417,6 +431,13 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			errors.add("Get failed (" + e.code + "): " + e.getMessage());
 		} catch (IOException e) {
 			errors.add("IO Error: " + e.getMessage());
+		} catch (MetadataParseException e) {
+			errors.add("Metadata Parse Error: " + e.getMessage());
+		} catch (FetchException e) {
+			errors.add("Get failed (" + e.mode + "): " + e.getMessage());
+		} catch (KeyListenerConstructionException e) {
+			Logger.error(this, "Hu?", e);
+			errors.add("Internal Error: " + e.getMessage());
 		} finally {
 			if (getresult != null)
 				getresult.free();
@@ -527,12 +548,19 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 					metaBox.addChild("%", "<BR />");
 
 					if (md.isSimpleManifest()) {
-						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=simplemanifest&key=" + furi, "reopen as manifest"));
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=simplemanifest&key=" + furi + extraParams, "reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
 					if (md.isArchiveManifest()) {
-						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=" + md.getArchiveType().name() + "manifest&key=" + furi,
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=" + md.getArchiveType().name() + "manifest&key=" + furi + extraParams,
 								"reopen as manifest"));
+						metaBox.addChild("%", "<BR />");
+					}
+					if (md.isMultiLevelMetadata()) {
+						if (ml)
+							metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + furi + extraParams, "explore multilevel"));
+						else
+							metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?ml=checked&key=" + furi + extraParams, "explore multilevel"));
 						metaBox.addChild("%", "<BR />");
 					}
 
@@ -543,7 +571,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 						metaBox.addChild("#", "\u00a0");
 						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + sfrUri, "open"));
 						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + sfrUri, "explore"));
+						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + sfrUri + extraParams, "explore"));
 					} else {
 						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));
 					}
@@ -600,7 +628,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		return sb.toString();
 	}
 
-	private String makeManifestPage(List<String> errors, String key, boolean zip, boolean tar, int hexWidth, boolean automf, boolean deep) {
+	private String makeManifestPage(List<String> errors, String key, boolean zip, boolean tar, int hexWidth, boolean automf, boolean deep, boolean ml) {
 		PageNode page = m_pm.getPageNode("KeyExplorer", null);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -616,8 +644,12 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				metadata = zipManifestGet(furi);
 			else if (tar)
 				metadata = tarManifestGet(furi, ".metadata");
-			else
+			else {
 				metadata = simpleManifestGet(m_pr, furi);
+				if (ml) {
+					metadata = splitManifestGet(metadata);
+				}
+			}
 		} catch (MalformedURLException e) {
 			errors.add("MalformedURL: " + key);
 		} catch (FetchException e) {
@@ -628,6 +660,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			errors.add("MetadataParseException");
 		} catch (LowLevelGetException e) {
 			errors.add("Get failed (" + e.code + "): " + e.getMessage());
+		} catch (KeyListenerConstructionException e) {
+			Logger.error(this, "Hu?", e);
+			errors.add("Internal Error: " + e.getMessage());
 		}
 
 		if (errors.size() > 0) {
