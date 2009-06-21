@@ -746,10 +746,15 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		}
 		
 		if (md.isMultiLevelMetadata()) {
-			htmlTableRow.addChild(makeNameCell(prefix, name));
+			HTMLNode cell = htmlTableRow.addChild("td");
+			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
-			htmlTableRow.addChild(makeCell("Somewhat seriously wrong"));
+			if (md.isSingleFileRedirect()) {
+				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
+			} else {
+				htmlTableRow.addChild(makeCell("Sorry, I won't deal with multilevel metadata here even though they are valid."));
+			}
 			return;
 		}
 
