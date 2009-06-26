@@ -966,13 +966,13 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		HTMLNode cell = new HTMLNode("td");
 		
 		if (md.isArchiveInternalRedirect() || md.isArchiveMetadataRedirect() || md.isSymbolicShortlink())
-			cell.addChild("span", "title", "All data are in container", "[c]");
+			cell.addChild("span", "title", "All data are in container/chunk", "[c]");
 		else if (md.getSingleTarget() != null)
-			cell.addChild("span", "title", "Pointer to external meta+data (FreenetURI)", "[e]");
+			cell.addChild("span", "title", "Pointer to external [meta+]data (FreenetURI)", "[e]");
 		else if (md.isSimpleManifest())
-			cell.addChild("span", "title", "A subdirectory inside container", "[s]");
+			cell.addChild("span", "title", "A subdirectory inside container/chunk", "[s]");
 		else	
-			cell.addChild("span", "title", "Metadata are in container, but points to external data", "[m]");
+			cell.addChild("span", "title", "Metadata are in container, but points to external data (usually split files)", "[m]");
 		
 		cell.addChild("#", "\u00a0");
 		
