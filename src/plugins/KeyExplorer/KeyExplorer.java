@@ -726,7 +726,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			htmlTableRow.addChild(makeEmptyCell());
 			
 			if (defaultDoc != null) {
-				parseMetadataItem(htmlTable, "/", defaultDoc, prefix, furi, errors, deep, nestedLevel, subLevel+1);
+				parseMetadataItem(htmlTable, "/", defaultDoc, prefix+name, furi, errors, deep, nestedLevel, subLevel+1);
 			}
 			
 			for (String iname: docs.keySet()) {
