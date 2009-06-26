@@ -506,6 +506,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 						metaBox.addChild("#", "ArchiveManifest");
 					} else if (md.isMultiLevelMetadata()) {
 						metaBox.addChild("#", "MultiLevelMetadata");
+					} else if (md.isSymbolicShortlink()) {
+						metaBox.addChild("#", "SymbolicShortlink");
 					} else {
 						metaBox.addChild("#", "<Unknown document type>");
 					}
@@ -744,7 +746,16 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			htmlTableRow.addChild(makeCell(md.getArchiveInternalName()));
 			return;
 		}
-		
+
+		if (md.isSymbolicShortlink()) {
+			HTMLNode cell = htmlTableRow.addChild("td");
+			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
+			htmlTableRow.addChild(makeEmptyCell());
+			htmlTableRow.addChild(makeMimeCell(md));
+			htmlTableRow.addChild(makeCell("->"+md.getArchiveInternalName()));
+			return;
+		}
+
 		if (md.isMultiLevelMetadata()) {
 			HTMLNode cell = htmlTableRow.addChild("td");
 			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
@@ -954,7 +965,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	private HTMLNode makeTypeCell(Metadata md) {
 		HTMLNode cell = new HTMLNode("td");
 		
-		if (md.isArchiveInternalRedirect() || md.isArchiveMetadataRedirect())
+		if (md.isArchiveInternalRedirect() || md.isArchiveMetadataRedirect() || md.isSymbolicShortlink())
 			cell.addChild("span", "title", "All data are in container", "[c]");
 		else if (md.getSingleTarget() != null)
 			cell.addChild("span", "title", "Pointer to external meta+data (FreenetURI)", "[e]");
@@ -977,6 +988,8 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			cell.addChild("span", "title", "Archive redirect", "ARE");
 		} else if (md.isMultiLevelMetadata()) {
 			cell.addChild("span", "title", "Multi level metadata", "MLM");
+		} else if (md.isSymbolicShortlink()) {
+			cell.addChild("span", "title", "Symbolic short link", "SYS");
 		} else {
 			cell.addChild("span", "title", "Unknown document type", "?");
 		}
