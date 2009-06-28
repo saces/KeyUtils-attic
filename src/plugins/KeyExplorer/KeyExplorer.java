@@ -752,7 +752,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
 			htmlTableRow.addChild(makeEmptyCell());
 			htmlTableRow.addChild(makeMimeCell(md));
-			htmlTableRow.addChild(makeCell("->"+md.getArchiveInternalName()));
+			htmlTableRow.addChild(makeCell("->"+md.getSymbolicShortlinkTargetName()));
 			return;
 		}
 
