@@ -3,20 +3,44 @@
  * http://www.gnu.org/ for further details of the GPL. */
 package plugins.KeyExplorer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import org.apache.tools.tar.TarEntry;
+import org.apache.tools.tar.TarInputStream;
+
+import com.db4o.ObjectContainer;
+
+import freenet.client.ArchiveContext;
+import freenet.client.ClientMetadata;
+import freenet.client.FetchContext;
+import freenet.client.FetchException;
+import freenet.client.FetchResult;
+import freenet.client.FetchWaiter;
+import freenet.client.HighLevelSimpleClient;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
+import freenet.client.async.ClientContext;
+import freenet.client.async.ClientGetState;
 import freenet.client.async.ManifestElement;
+import freenet.client.async.GetCompletionCallback;
+import freenet.client.async.KeyListenerConstructionException;
+import freenet.client.async.SplitFileFetcher;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
 import freenet.node.LowLevelGetException;
 import freenet.node.RequestClient;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.api.Bucket;
+import freenet.support.compress.Compressor.COMPRESSOR_TYPE;
 
 public class KeyExplorerUtils {
 
@@ -39,6 +63,185 @@ public class KeyExplorerUtils {
 		VerySimpleGet vs = new VerySimpleGet(ck, 0, pr.getHLSimpleClient().getFetchContext(), vsg);
 		vs.schedule(null, pr.getNode().clientCore.clientContext);
 		return new GetResult(vs.waitForCompletion(), vs.isMetadata());
+	}
+
+	public static FetchResult splitGet(PluginRespirator pr, Metadata metadata) throws MalformedURLException, LowLevelGetException, FetchException, MetadataParseException,
+			KeyListenerConstructionException {
+
+		final FetchWaiter fw = new FetchWaiter();
+
+		GetCompletionCallback cb = new GetCompletionCallback() {
+
+			public void onBlockSetFinished(ClientGetState state, ObjectContainer container, ClientContext context) {
+				// TODO Auto-generated method stub
+			}
+
+			public void onExpectedMIME(String mime, ObjectContainer container, ClientContext context) {
+				// TODO Auto-generated method stub
+			}
+
+			public void onExpectedSize(long size, ObjectContainer container, ClientContext context) {
+				// TODO Auto-generated method stub
+			}
+
+			public void onFailure(FetchException e, ClientGetState state, ObjectContainer container, ClientContext context) {
+				// TODO Auto-generated method stub
+				fw.onFailure(e, null, container);
+			}
+
+			public void onFinalizedMetadata(ObjectContainer container) {
+				// TODO Auto-generated method stub
+			}
+
+			public void onSuccess(FetchResult result, ClientGetState state, ObjectContainer container, ClientContext context) {
+				// meta = Metadata.construct(result.asBucket());
+				// System.out.println("HEHEHE!!!YEAH!!!");
+				fw.onSuccess(result, null, container);
+				// fresult = result;
+			}
+
+			public void onTransition(ClientGetState oldState, ClientGetState newState, ObjectContainer container) {
+				// TODO Auto-generated method stub
+
+			}
+		};
+
+		List<COMPRESSOR_TYPE> decompressors = new LinkedList<COMPRESSOR_TYPE>();
+		FetchContext ctx = pr.getHLSimpleClient().getFetchContext();
+		boolean deleteFetchContext = false;
+		ClientMetadata clientMetadata = null;
+		ArchiveContext actx = null;
+		int recursionLevel = 0;
+		Bucket returnBucket = null;
+		long token = 0;
+		if (metadata.isCompressed()) {
+			COMPRESSOR_TYPE codec = metadata.getCompressionCodec();
+			decompressors.add(codec);
+		}
+		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, null, (RequestClient) pr.getHLSimpleClient());
+		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, decompressors, clientMetadata, actx, recursionLevel, returnBucket, token,
+				null, pr.getNode().clientCore.clientContext);
+
+		// VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri,
+		// (RequestClient) pr.getHLSimpleClient());
+		// VerySimpleGet vs = new VerySimpleGet(ck, 0,
+		// pr.getHLSimpleClient().getFetchContext(), vsg);
+		sf.schedule(null, pr.getNode().clientCore.clientContext);
+		// fw.waitForCompletion();
+		return fw.waitForCompletion();
+	}
+
+	public static Metadata splitManifestGet(PluginRespirator pr, Metadata metadata) throws MetadataParseException, LowLevelGetException, IOException, FetchException, KeyListenerConstructionException {
+		FetchResult res = splitGet(pr, metadata);
+		return Metadata.construct(res.asBucket());
+	}
+
+	public static Metadata zipManifestGet(PluginRespirator pr, FreenetURI uri) throws FetchException, MetadataParseException, IOException {
+		HighLevelSimpleClient hlsc = pr.getHLSimpleClient();
+		FetchContext fctx = hlsc.getFetchContext();
+		fctx.returnZIPManifests = true;
+		FetchWaiter fw = new FetchWaiter();
+		hlsc.fetch(uri, -1, (RequestClient) hlsc, fw, fctx);
+		FetchResult fr = fw.waitForCompletion();
+		ZipInputStream zis = new ZipInputStream(fr.asBucket().getInputStream());
+		ZipEntry entry;
+		ByteArrayOutputStream bos;
+		while (true) {
+			entry = zis.getNextEntry();
+			if (entry == null)
+				break;
+			if (entry.isDirectory())
+				continue;
+			String name = entry.getName();
+			if (".metadata".equals(name)) {
+				byte[] buf = new byte[32768];
+				bos = new ByteArrayOutputStream();
+				// Read the element
+				int readBytes;
+				while ((readBytes = zis.read(buf)) > 0) {
+					bos.write(buf, 0, readBytes);
+				}
+				bos.close();
+				return Metadata.construct(bos.toByteArray());
+			}
+		}
+		throw new FetchException(200, "impossible? no metadata in archive " + uri);
+	}
+
+	public static Metadata tarManifestGet(PluginRespirator pr, Metadata md, String metaName) throws FetchException, MetadataParseException, IOException {
+		FetchResult fr;
+		try {
+			fr = splitGet(pr, md);
+		} catch (LowLevelGetException e) {
+			throw new FetchException(e.code);
+		} catch (KeyListenerConstructionException e) {
+			throw new FetchException(FetchException.INTERNAL_ERROR, e);
+		}
+		return internalTarManifestGet(fr.asBucket(), metaName);
+	}
+
+	public static Metadata tarManifestGet(PluginRespirator pr, FreenetURI uri, String metaName) throws FetchException, MetadataParseException, IOException {
+		HighLevelSimpleClient hlsc = pr.getHLSimpleClient();
+		FetchContext fctx = hlsc.getFetchContext();
+		fctx.returnZIPManifests = true;
+		FetchWaiter fw = new FetchWaiter();
+		hlsc.fetch(uri, -1, (RequestClient) hlsc, fw, fctx);
+		FetchResult fr = fw.waitForCompletion();
+		return internalTarManifestGet(fr.asBucket(), metaName);
+	}
+
+	public static Metadata internalTarManifestGet(Bucket data, String metaName) throws IOException, MetadataParseException, FetchException {
+		TarInputStream zis = new TarInputStream(data.getInputStream());
+		TarEntry entry;
+		ByteArrayOutputStream bos;
+		while (true) {
+			entry = zis.getNextEntry();
+			if (entry == null)
+				break;
+			if (entry.isDirectory())
+				continue;
+			String name = entry.getName();
+			if (metaName.equals(name)) {
+				byte[] buf = new byte[32768];
+				bos = new ByteArrayOutputStream();
+				// Read the element
+				int readBytes;
+				while ((readBytes = zis.read(buf)) > 0) {
+					bos.write(buf, 0, readBytes);
+				}
+				bos.close();
+				return Metadata.construct(bos.toByteArray());
+			}
+		}
+		throw new FetchException(200, "impossible? no metadata in archive ");
+	}
+
+	public static FreenetURI sanitizeURI(List<String> errors, String key) throws MalformedURLException {
+		if (key == null) throw new NullPointerException();
+
+		FreenetURI tempURI = new FreenetURI(key);
+
+		//get rid of metas, useles
+		if (tempURI.hasMetaStrings()) {
+			if (errors != null) {
+				tempURI = tempURI.setMetaString(null);
+				errors.add("URI did contain meta strings, removed it for you");
+			} else {
+				throw new MalformedURLException("URIs with meta strings not supported");
+			}
+		}
+
+		// turn USK into SSK
+		if (tempURI.isUSK()) {
+			if (errors != null) {
+				tempURI = tempURI.sskForUSK();
+				errors.add("URI was an USK, converted it to SSK for you");
+			} else {
+				throw new MalformedURLException("USK not supported, use underlying SSK instead.");
+			}
+		}
+
+		return tempURI;
 	}
 
 	public static HashMap<String, Object> parseMetadata(Metadata oldMetadata, FreenetURI oldUri) throws MalformedURLException {

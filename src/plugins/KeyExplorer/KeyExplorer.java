@@ -3,7 +3,6 @@
  * http://www.gnu.org/ for further details of the GPL. */
 package plugins.KeyExplorer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Formatter;
@@ -11,28 +10,16 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
 
 import com.db4o.ObjectContainer;
 
-import freenet.client.ArchiveContext;
-import freenet.client.ClientMetadata;
 import freenet.client.DefaultMIMETypes;
-import freenet.client.FetchContext;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
-import freenet.client.FetchWaiter;
 import freenet.client.HighLevelSimpleClient;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.client.ArchiveManager.ARCHIVE_TYPE;
-import freenet.client.async.ClientContext;
-import freenet.client.async.ClientGetState;
-import freenet.client.async.GetCompletionCallback;
 import freenet.client.async.KeyListenerConstructionException;
 import freenet.client.async.SplitFileFetcher;
 import freenet.clients.http.InfoboxNode;
@@ -60,12 +47,11 @@ import freenet.support.Logger;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
-import freenet.support.compress.Compressor.COMPRESSOR_TYPE;
 import freenet.support.io.BucketTools;
 
 /**
  * @author saces
- * 
+ *
  */
 public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
 
@@ -106,16 +92,16 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
 			hexWidth = 32;
 		}
-		
+
 		if ("splitdownload".equals(action)) {
 			byte[] data = doDownload(errors, uri);
 			if (errors.size()==0) {
 				throw new DownloadPluginHTTPException(data, "plugindownload", DefaultMIMETypes.DEFAULT_MIME_TYPE);
 			} else {
 				return makeMainPage(errors, uri, hexWidth, false, deep, ml);
-			}	
+			}
 		}
-		
+
 		if ("ZIPmanifest".equals(type)) {
 			return makeManifestPage(errors, uri, true, false, hexWidth, automf, deep, ml);
 		}
@@ -151,14 +137,14 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	/**
-	 * @param accesstype  
+	 * @param accesstype
 	 */
 	public void realHandle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) throws PluginNotFoundException {
 			if (params == null) {
 				sendError(replysender, 0, "Got void message");
 				return;
 			}
-			
+
 			if (data != null) {
 				sendError(replysender, 0, "Got a diatribe piece of writing. Data not allowed!");
 				return;
@@ -193,7 +179,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				}
 
 				try {
-					FreenetURI furi = sanitizeURI(null, uri);
+					FreenetURI furi = KeyExplorerUtils.sanitizeURI(null, uri);
 					GetResult getResult = KeyExplorerUtils.simpleGet(m_pr, furi);
 					SimpleFieldSet sfs = new SimpleFieldSet(true);
 					sfs.putSingle("Identifier", identifier);
@@ -255,7 +241,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	private byte[] doDownload(List<String> errors, String key) {
-		
+
 		if (errors.size() > 0) {
 			return null;
 		}
@@ -264,7 +250,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			return null;
 		}
 		try {
-			FreenetURI furi = sanitizeURI(errors, key);
+			FreenetURI furi = KeyExplorerUtils.sanitizeURI(errors, key);
 			GetResult getresult = KeyExplorerUtils.simpleGet(m_pr, furi);
 			if (getresult.isMetaData()) {
 				return unrollMetadata(errors, Metadata.construct(getresult.getData()));
@@ -294,80 +280,14 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	private byte[] unrollMetadata(List<String> errors, Metadata md) throws MalformedURLException, IOException, LowLevelGetException, FetchException, MetadataParseException, KeyListenerConstructionException {
-		
+
 		if (!md.isSplitfile()) {
 			errors.add("Unsupported Metadata: Not a Splitfile");
 			return null;
 		}
 		byte[] result = null;
-		result = BucketTools.toByteArray(splitGet(md).asBucket());
+		result = BucketTools.toByteArray(KeyExplorerUtils.splitGet(m_pr, md).asBucket());
 		return result;
-	}
-
-	private FetchResult splitGet(Metadata metadata) throws MalformedURLException, LowLevelGetException, FetchException, MetadataParseException,
-			KeyListenerConstructionException {
-
-		final FetchWaiter fw = new FetchWaiter();
-
-		GetCompletionCallback cb = new GetCompletionCallback() {
-
-			public void onBlockSetFinished(ClientGetState state, ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
-			}
-
-			public void onExpectedMIME(String mime, ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
-			}
-
-			public void onExpectedSize(long size, ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
-			}
-
-			public void onFailure(FetchException e, ClientGetState state, ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
-				fw.onFailure(e, null, container);
-			}
-
-			public void onFinalizedMetadata(ObjectContainer container) {
-				// TODO Auto-generated method stub
-			}
-
-			public void onSuccess(FetchResult result, ClientGetState state, ObjectContainer container, ClientContext context) {
-				// meta = Metadata.construct(result.asBucket());
-				// System.out.println("HEHEHE!!!YEAH!!!");
-				fw.onSuccess(result, null, container);
-				// fresult = result;
-			}
-
-			public void onTransition(ClientGetState oldState, ClientGetState newState, ObjectContainer container) {
-				// TODO Auto-generated method stub
-
-			}
-		};
-
-		LinkedList<COMPRESSOR_TYPE> decompressors = new LinkedList<COMPRESSOR_TYPE>();
-		FetchContext ctx = m_pr.getHLSimpleClient().getFetchContext();
-		boolean deleteFetchContext = false;
-		ClientMetadata clientMetadata = null;
-		ArchiveContext actx = null;
-		int recursionLevel = 0;
-		Bucket returnBucket = null;
-		long token = 0;
-		if (metadata.isCompressed()) {
-			COMPRESSOR_TYPE codec = metadata.getCompressionCodec();
-			decompressors.add(codec);
-		}
-		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, null, (RequestClient) m_pr.getHLSimpleClient());
-		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, decompressors, clientMetadata, actx, recursionLevel, returnBucket, token,
-				null, m_pr.getNode().clientCore.clientContext);
-
-		// VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri,
-		// (RequestClient) m_pr.getHLSimpleClient());
-		// VerySimpleGet vs = new VerySimpleGet(ck, 0,
-		// m_pr.getHLSimpleClient().getFetchContext(), vsg);
-		sf.schedule(null, m_pr.getNode().clientCore.clientContext);
-		// fw.waitForCompletion();
-		return fw.waitForCompletion();
 	}
 
 	private void sendError(PluginReplySender replysender, int code, String description) throws PluginNotFoundException {
@@ -400,11 +320,11 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 		try {
 			if (key != null && (key.trim().length() > 0)) {
-				furi = sanitizeURI(errors, key);
+				furi = KeyExplorerUtils.sanitizeURI(errors, key);
 				retryUri = furi;
 				if (ml) { // multilevel is requestet
 					Metadata tempMD = KeyExplorerUtils.simpleManifestGet(m_pr, furi);
-					FetchResult tempResult = splitGet(tempMD);
+					FetchResult tempResult = KeyExplorerUtils.splitGet(m_pr, tempMD);
 					getresult = new GetResult(tempResult.asBucket(), true);
 					data = tempResult.asByteArray();
 				} else { // normal get
@@ -499,11 +419,11 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 						metaBox.addChild("#", "<Unknown document type>");
 					}
 					metaBox.addChild("%", "<BR />");
-					
+
 					if (md.haveFlags()) {
 						metaBox.addChild("#", "Flags:\u00a0");
 						boolean isFirst = true;
-						
+
 						if (md.isSplitfile()) {
 							metaBox.addChild("#", "SplitFile");
 							isFirst = false;
@@ -519,15 +439,15 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 							metaBox.addChild("#", "<No flag set>");
 					}
 					metaBox.addChild("%", "<BR />");
-					
+
 					if (md.isCompressed()) {
 						metaBox.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes.");
 					} else {
 						metaBox.addChild("#", "Uncompressed");
 					}
-					
+
 					metaBox.addChild("%", "<BR />");
-					
+
 					if (md.isSplitfile()) {
 						metaBox.addChild("#", "Splitfile size\u00a0=\u00a0" + md.dataLength() + " bytes.");
 						metaBox.addChild("%", "<BR />");
@@ -565,7 +485,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));
 					}
 					metaBox.addChild("%", "<BR />");
-					
+
 					if ((uri == null) && md.isSplitfile() ) {
 						metaBox.addChild(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
 						metaBox.addChild("%", "<BR />");
@@ -627,16 +547,16 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		FreenetURI furi = null;
 
 		try {
-			furi = sanitizeURI(errors, key);
+			furi = KeyExplorerUtils.sanitizeURI(errors, key);
 
 			if (zip)
-				metadata = zipManifestGet(furi);
+				metadata = KeyExplorerUtils.zipManifestGet(m_pr, furi);
 			else if (tar)
-				metadata = tarManifestGet(furi, ".metadata");
+				metadata = KeyExplorerUtils.tarManifestGet(m_pr, furi, ".metadata");
 			else {
 				metadata = KeyExplorerUtils.simpleManifestGet(m_pr, furi);
 				if (ml) {
-					metadata = splitManifestGet(metadata);
+					metadata = KeyExplorerUtils.splitManifestGet(m_pr, metadata);
 				}
 			}
 		} catch (MalformedURLException e) {
@@ -691,13 +611,13 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	private void parseMetadataItem(HTMLNode htmlTable, String name, Metadata md, String prefix, String furi, List<String> errors, boolean deep, int nestedLevel, int subLevel) {
-		
+
 		String fname = prefix + name;
-		
+
 		HTMLNode htmlTableRow = htmlTable.addChild("tr");
 		htmlTableRow.addChild(makeNestedDeepCell(nestedLevel, subLevel));
 		htmlTableRow.addChild(makeTypeCell(md));
-		
+
 		// the clear & easy first
 		if (md.isSimpleManifest()) {
 			// a subdir
@@ -708,23 +628,23 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			} catch (MetadataParseException e) {
 				//impossible;
 			}
-			
+
 			htmlTableRow.addChild(makeNameCell(prefix, name));
 			htmlTableRow.addChild(makeCell("(" + Integer.toString(docs.size())+" Items)"));
 			htmlTableRow.addChild(makeEmptyCell());
 			htmlTableRow.addChild(makeEmptyCell());
-			
+
 			if (defaultDoc != null) {
 				parseMetadataItem(htmlTable, "/", defaultDoc, prefix+name, furi, errors, deep, nestedLevel, subLevel+1);
 			}
-			
+
 			for (String iname: docs.keySet()) {
 				Metadata doc = docs.get(iname);
 				parseMetadataItem(htmlTable, iname, doc, prefix+name+'/', furi, errors, deep, nestedLevel, subLevel+1);
 			}
 			return;
 		}
-		
+
 		if (md.isArchiveInternalRedirect()) {
 			HTMLNode cell = htmlTableRow.addChild("td");
 			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
@@ -765,20 +685,20 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
 			else
 				htmlTableRow.addChild(makeEmptyCell());
-			
+
 			// the row for the item itself is written, now look inside for multi level md
 			if (deep && md.isNoMimeEnabled() && md.isSingleFileRedirect()) {
 				// looks like possible ml
 				FreenetURI mlUri = md.getSingleTarget();
 				// is control document?
-				if ((mlUri.getExtra()[2] & 0x02) != 0) { 
+				if ((mlUri.getExtra()[2] & 0x02) != 0) {
 					// control doc, look inside for ML
 					Exception err;
 					try {
 						Metadata subMd = KeyExplorerUtils.simpleManifestGet(m_pr, mlUri);
 						if (subMd.isMultiLevelMetadata()) {
 							// really multilevel, fetch it
-							subMd = splitManifestGet(subMd);
+							subMd = KeyExplorerUtils.splitManifestGet(m_pr, subMd);
 						}
 						parseMetadataItem(htmlTable, "", subMd, prefix+name, furi, errors, deep, nestedLevel+1, -1);
 						return;
@@ -796,9 +716,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 					htmlTable.addChild(makeErrorRow(err));
 				}
 			}
-			return;	
+			return;
 		}
-		
+
 		if (md.isArchiveMetadataRedirect()) {
 			htmlTableRow.addChild(makeNameCell(prefix, name));
 			htmlTableRow.addChild(makeSizeCell(md));
@@ -812,7 +732,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				Exception err;
 				try {
 					u = new FreenetURI(furi);
-					metadata = tarManifestGet(u, md.getArchiveInternalName());
+					metadata = KeyExplorerUtils.tarManifestGet(m_pr, u, md.getArchiveInternalName());
 					//parse into
 					parseMetadataItem(htmlTable, "", metadata, prefix+name, furi, errors, deep, nestedLevel+1, -1);
 					return;
@@ -829,12 +749,12 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			}
 			return;
 		}
-		
+
 		if (md.isArchiveManifest()) {
 			htmlTableRow.addChild(makeNameCell(prefix, name));
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
-		
+
 			if (md.isSingleFileRedirect()) {
 				String containerTarget = md.getSingleTarget().toString(false, false);
 				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=" + md.getArchiveType().name() + "manifest&key=" + containerTarget, containerTarget)));
@@ -848,9 +768,9 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				if (md.getArchiveType() == ARCHIVE_TYPE.TAR) {
 					try {
 						if (md.isSplitfile())
-							subMd = tarManifestGet(md, ".metadata");
+							subMd = KeyExplorerUtils.tarManifestGet(m_pr, md, ".metadata");
 						else
-							subMd = tarManifestGet(md.getSingleTarget(), ".metadata");
+							subMd = KeyExplorerUtils.tarManifestGet(m_pr, md.getSingleTarget(), ".metadata");
 						parseMetadataItem(htmlTable, "", subMd, prefix+name, furi, errors, deep, nestedLevel+1, -1);
 						return;
 					} catch (FetchException e) {
@@ -865,7 +785,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			}
 			return;
 		}
-		
+
 		// in theory this is 'unreachable code'
 		htmlTableRow.addChild(makeNameCell(prefix, name));
 		htmlTableRow.addChild(makeSizeCell(md));
@@ -876,7 +796,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	private HTMLNode makeErrorRow(Exception e) {
 		return makeErrorRow(e.getLocalizedMessage());
 	}
-		
+
 	private HTMLNode makeErrorRow(String msg) {
 		HTMLNode row = new HTMLNode("tr");
 		row.addChild(makeEmptyCell());
@@ -890,25 +810,25 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			row.addChild(makeEmptyCell());
 		return row;
 	}
-	
+
 	private HTMLNode makeEmptyCell() {
 		HTMLNode cell = new HTMLNode("td");
 		cell.addChild("#", "\u00a0");
 		return cell;
 	}
-	
+
 	private HTMLNode makeCell(String content) {
 		HTMLNode cell = new HTMLNode("td");
 		cell.addChild("#", content);
 		return cell;
 	}
-	
+
 	private HTMLNode makeCell(HTMLNode content) {
 		HTMLNode cell = new HTMLNode("td");
 		cell.addChild(content);
 		return cell;
 	}
-	
+
 	private HTMLNode makeSizeCell(Metadata md) {
 		long size;
 		if (md.isCompressed())
@@ -919,7 +839,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			return makeEmptyCell();
 		return makeCell(Long.toString(size)+"\u00a0B");
 	}
-	
+
 	private HTMLNode makeNameCell(String prefix, String name) {
 		HTMLNode cell = new HTMLNode("td");
 		if ((name == null)||(name.trim().length()==0))
@@ -931,7 +851,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				cell.addChild("#", name);
 		return cell;
 	}
-	
+
 	private HTMLNode makeMimeCell(Metadata md) {
 		HTMLNode cell = new HTMLNode("td");
 		if(md.isNoMimeEnabled())
@@ -948,21 +868,21 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		cell.addChild("span", "title", "sub level inside container/manifest", ((subLevel==-1)?"R":Integer.toString(subLevel)));
 		return cell;
 	}
-	
+
 	private HTMLNode makeTypeCell(Metadata md) {
 		HTMLNode cell = new HTMLNode("td");
-		
+
 		if (md.isArchiveInternalRedirect() || md.isArchiveMetadataRedirect() || md.isSymbolicShortlink())
 			cell.addChild("span", "title", "All data are in container/chunk", "[c]");
 		else if (md.getSingleTarget() != null)
 			cell.addChild("span", "title", "Pointer to external [meta+]data (FreenetURI)", "[e]");
 		else if (md.isSimpleManifest())
 			cell.addChild("span", "title", "A subdirectory inside container/chunk", "[s]");
-		else	
+		else
 			cell.addChild("span", "title", "Metadata are in container, but points to external data (usually split files)", "[m]");
-		
+
 		cell.addChild("#", "\u00a0");
-		
+
 		if (md.isSimpleRedirect()) {
 			cell.addChild("span", "title", "Simple redirect", "SRE");
 		} else if (md.isSimpleManifest()) {
@@ -980,12 +900,12 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		} else {
 			cell.addChild("span", "title", "Unknown document type", "?");
 		}
-		
+
 		cell.addChild("#", "\u00a0");
-		
+
 		if (md.haveFlags()) {
 			boolean isFirst = true;
-			
+
 			if (md.isSplitfile()) {
 				cell.addChild("#", "(");
 				cell.addChild("span", "title", "Split file", "SF");
@@ -1005,7 +925,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		}
 		return cell;
 	}
-	
+
 	private HTMLNode createUriBox(String uri, int hexWidth, boolean automf, boolean deep, List<String> errors) {
 		InfoboxNode box = m_pm.getInfobox("Explore a freenet key");
 		HTMLNode browseBox = box.outer;
@@ -1060,90 +980,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		return "0.5α " + revision;
 	}
 
-	private Metadata splitManifestGet(Metadata metadata) throws MetadataParseException, LowLevelGetException, IOException, FetchException, KeyListenerConstructionException {
-		FetchResult res = splitGet(metadata);
-		return Metadata.construct(res.asBucket());
-	}
-
-	private Metadata zipManifestGet(FreenetURI uri) throws FetchException, MetadataParseException, IOException {
-		HighLevelSimpleClient hlsc = m_pr.getHLSimpleClient();
-		FetchContext fctx = hlsc.getFetchContext();
-		fctx.returnZIPManifests = true;
-		FetchWaiter fw = new FetchWaiter();
-		hlsc.fetch(uri, -1, (RequestClient) hlsc, fw, fctx);
-		FetchResult fr = fw.waitForCompletion();
-		ZipInputStream zis = new ZipInputStream(fr.asBucket().getInputStream());
-		ZipEntry entry;
-		ByteArrayOutputStream bos;
-		while (true) {
-			entry = zis.getNextEntry();
-			if (entry == null)
-				break;
-			if (entry.isDirectory())
-				continue;
-			String name = entry.getName();
-			if (".metadata".equals(name)) {
-				byte[] buf = new byte[32768];
-				bos = new ByteArrayOutputStream();
-				// Read the element
-				int readBytes;
-				while ((readBytes = zis.read(buf)) > 0) {
-					bos.write(buf, 0, readBytes);
-				}
-				bos.close();
-				return Metadata.construct(bos.toByteArray());
-			}
-		}
-		throw new FetchException(200, "impossible? no metadata in archive " + uri);
-	}
-	
-	private Metadata tarManifestGet(Metadata md, String metaName) throws FetchException, MetadataParseException, IOException {
-		FetchResult fr;
-		try {
-			fr = splitGet(md);
-		} catch (LowLevelGetException e) {
-			throw new FetchException(e.code);
-		} catch (KeyListenerConstructionException e) {
-			throw new FetchException(FetchException.INTERNAL_ERROR, e);
-		}
-		return internalTarManifestGet(fr.asBucket(), metaName);
-	}
-	private Metadata tarManifestGet(FreenetURI uri, String metaName) throws FetchException, MetadataParseException, IOException {
-		HighLevelSimpleClient hlsc = m_pr.getHLSimpleClient();
-		FetchContext fctx = hlsc.getFetchContext();
-		fctx.returnZIPManifests = true;
-		FetchWaiter fw = new FetchWaiter();
-		hlsc.fetch(uri, -1, (RequestClient) hlsc, fw, fctx);
-		FetchResult fr = fw.waitForCompletion();
-		return internalTarManifestGet(fr.asBucket(), metaName);
-	}
-		
-	private Metadata internalTarManifestGet(Bucket data, String metaName) throws IOException, MetadataParseException, FetchException {
-		TarInputStream zis = new TarInputStream(data.getInputStream());
-		TarEntry entry;
-		ByteArrayOutputStream bos;
-		while (true) {
-			entry = zis.getNextEntry();
-			if (entry == null)
-				break;
-			if (entry.isDirectory())
-				continue;
-			String name = entry.getName();
-			if (metaName.equals(name)) {
-				byte[] buf = new byte[32768];
-				bos = new ByteArrayOutputStream();
-				// Read the element
-				int readBytes;
-				while ((readBytes = zis.read(buf)) > 0) {
-					bos.write(buf, 0, readBytes);
-				}
-				bos.close();
-				return Metadata.construct(bos.toByteArray());
-			}
-		}
-		throw new FetchException(200, "impossible? no metadata in archive ");
-	}
-
 	public String getString(String key) {
 		// TODO Auto-generated method stub
 		return key;
@@ -1156,32 +992,5 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	public long getRealVersion() {
 		return revision;
 	}
-	
-	private FreenetURI sanitizeURI(List<String> errors, String key) throws MalformedURLException {
-		if (key == null) throw new NullPointerException();
-		
-		FreenetURI tempURI = new FreenetURI(key);
-		
-		//get rid of metas, useles
-		if (tempURI.hasMetaStrings()) {
-			if (errors != null) {
-				tempURI = tempURI.setMetaString(null);
-				errors.add("URI did contain meta strings, removed it for you");
-			} else {
-				throw new MalformedURLException("URIs with meta strings not supported");
-			}
-		}
-		
-		// turn USK into SSK
-		if (tempURI.isUSK()) {
-			if (errors != null) {
-				tempURI = tempURI.sskForUSK();
-				errors.add("URI was an USK, converted it to SSK for you");
-			} else {
-				throw new MalformedURLException("USK not supported, use underlying SSK instead.");
-			}
-		}
-		
-		return tempURI;
-	}
+
 }
