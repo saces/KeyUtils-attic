@@ -38,8 +38,6 @@ import freenet.client.async.SplitFileFetcher;
 import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
-import freenet.keys.BaseClientKey;
-import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
 import freenet.l10n.L10n.LANGUAGE;
 import freenet.node.LowLevelGetException;
@@ -71,6 +69,8 @@ import freenet.support.io.BucketTools;
  */
 public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
 
+	private static final long revision = 5000;
+	public static final String PLUGIN_URI = "/KeyExplorer";
 	private PluginRespirator m_pr;
 	private PageMaker m_pm;
 
@@ -194,7 +194,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 				try {
 					FreenetURI furi = sanitizeURI(null, uri);
-					GetResult getResult = simpleGet(m_pr, furi);
+					GetResult getResult = KeyExplorerUtils.simpleGet(m_pr, furi);
 					SimpleFieldSet sfs = new SimpleFieldSet(true);
 					sfs.putSingle("Identifier", identifier);
 					sfs.put("IsMetadata", getResult.isMetaData());
@@ -226,7 +226,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 
 				try {
 					FreenetURI furi = new FreenetURI(uri);
-					GetResult getResult = simpleGet(m_pr, furi);
+					GetResult getResult = KeyExplorerUtils.simpleGet(m_pr, furi);
 					SimpleFieldSet sfs = new SimpleFieldSet(true);
 					sfs.putSingle("Identifier", identifier);
 					sfs.put("IsMetadata", getResult.isMetaData());
@@ -265,7 +265,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		}
 		try {
 			FreenetURI furi = sanitizeURI(errors, key);
-			GetResult getresult = simpleGet(m_pr, furi);
+			GetResult getresult = KeyExplorerUtils.simpleGet(m_pr, furi);
 			if (getresult.isMetaData()) {
 				return unrollMetadata(errors, Metadata.construct(getresult.getData()));
 			} else {
@@ -302,19 +302,6 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		byte[] result = null;
 		result = BucketTools.toByteArray(splitGet(md).asBucket());
 		return result;
-	}
-
-	private static GetResult simpleGet(PluginRespirator pr, FreenetURI uri) throws MalformedURLException, LowLevelGetException {
-		ClientKey ck;
-		try {
-			ck = (ClientKey) BaseClientKey.getBaseKey(uri);
-		} catch (ClassCastException cce) {
-			throw new MalformedURLException("Not a supported freenet uri: " + uri);
-		}
-		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri, (RequestClient) pr.getHLSimpleClient());
-		VerySimpleGet vs = new VerySimpleGet(ck, 0, pr.getHLSimpleClient().getFetchContext(), vsg);
-		vs.schedule(null, pr.getNode().clientCore.clientContext);
-		return new GetResult(vs.waitForCompletion(), vs.isMetadata());
 	}
 
 	private FetchResult splitGet(Metadata metadata) throws MalformedURLException, LowLevelGetException, FetchException, MetadataParseException,
@@ -416,12 +403,12 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				furi = sanitizeURI(errors, key);
 				retryUri = furi;
 				if (ml) { // multilevel is requestet
-					Metadata tempMD = simpleManifestGet(m_pr, furi);
+					Metadata tempMD = KeyExplorerUtils.simpleManifestGet(m_pr, furi);
 					FetchResult tempResult = splitGet(tempMD);
 					getresult = new GetResult(tempResult.asBucket(), true);
 					data = tempResult.asByteArray();
 				} else { // normal get
-					getresult = simpleGet(m_pr, furi);
+					getresult = KeyExplorerUtils.simpleGet(m_pr, furi);
 					data = BucketTools.toByteArray(getresult.getData());
 				}
 			}
@@ -647,7 +634,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 			else if (tar)
 				metadata = tarManifestGet(furi, ".metadata");
 			else {
-				metadata = simpleManifestGet(m_pr, furi);
+				metadata = KeyExplorerUtils.simpleManifestGet(m_pr, furi);
 				if (ml) {
 					metadata = splitManifestGet(metadata);
 				}
@@ -788,7 +775,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 					// control doc, look inside for ML
 					Exception err;
 					try {
-						Metadata subMd = simpleManifestGet(m_pr, mlUri);
+						Metadata subMd = KeyExplorerUtils.simpleManifestGet(m_pr, mlUri);
 						if (subMd.isMultiLevelMetadata()) {
 							// really multilevel, fetch it
 							subMd = splitManifestGet(subMd);
@@ -1070,15 +1057,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public String getVersion() {
-		return "0.4β " + Version.svnRevision;
-	}
-
-	public static Metadata simpleManifestGet(PluginRespirator pr, FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
-		GetResult res = simpleGet(pr, uri);
-		if (!res.isMetaData()) {
-			throw new MetadataParseException("uri did not point to metadata " + uri);
-		}
-		return Metadata.construct(res.getData());
+		return "0.5α " + revision;
 	}
 
 	private Metadata splitManifestGet(Metadata metadata) throws MetadataParseException, LowLevelGetException, IOException, FetchException, KeyListenerConstructionException {
@@ -1175,7 +1154,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public long getRealVersion() {
-		return Version.version;
+		return revision;
 	}
 	
 	private FreenetURI sanitizeURI(List<String> errors, String key) throws MalformedURLException {
