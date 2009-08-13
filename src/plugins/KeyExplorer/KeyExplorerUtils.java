@@ -29,22 +29,53 @@ import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.client.async.ClientContext;
 import freenet.client.async.ClientGetState;
+import freenet.client.async.ClientGetter;
 import freenet.client.async.ManifestElement;
 import freenet.client.async.GetCompletionCallback;
 import freenet.client.async.KeyListenerConstructionException;
+import freenet.client.async.SnoopBucket;
 import freenet.client.async.SplitFileFetcher;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
 import freenet.node.LowLevelGetException;
 import freenet.node.RequestClient;
+import freenet.node.RequestStarter;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.Logger;
 import freenet.support.api.Bucket;
+import freenet.support.api.BucketFactory;
 import freenet.support.compress.Compressor.COMPRESSOR_TYPE;
+import freenet.support.io.BucketTools;
 
 public class KeyExplorerUtils {
 
-	public static Metadata simpleManifestGet(PluginRespirator pr, FreenetURI uri) throws MetadataParseException, LowLevelGetException, IOException {
+	private static class SnoopGetter implements SnoopBucket {
+
+		private GetResult result;
+		private final BucketFactory _bf;
+		
+		SnoopGetter (BucketFactory bf) {
+			_bf = bf;
+		}
+
+		public boolean snoopBucket(Bucket data, boolean isMetadata,
+				ObjectContainer container, ClientContext context) {
+			Bucket temp;
+			try {
+				temp = _bf.makeBucket(data.size());
+				BucketTools.copy(data, temp);
+			} catch (IOException e) {
+				Logger.error(this, "Bucket error, disk full?", e);
+				return true;
+			}
+			result = new GetResult(temp, isMetadata);
+			return true;
+		}
+	}
+
+
+	public static Metadata simpleManifestGet(PluginRespirator pr, FreenetURI uri) throws MetadataParseException, FetchException, IOException {
 		GetResult res = simpleGet(pr, uri);
 		if (!res.isMetaData()) {
 			throw new MetadataParseException("uri did not point to metadata " + uri);
@@ -52,17 +83,25 @@ public class KeyExplorerUtils {
 		return Metadata.construct(res.getData());
 	}
 
-	public static GetResult simpleGet(PluginRespirator pr, FreenetURI uri) throws MalformedURLException, LowLevelGetException {
-		ClientKey ck;
-		try {
-			ck = (ClientKey) BaseClientKey.getBaseKey(uri);
-		} catch (ClassCastException cce) {
-			throw new MalformedURLException("Not a supported freenet uri: " + uri);
+	public static GetResult simpleGet(PluginRespirator pr, FreenetURI uri) throws FetchException {
+		SnoopGetter snooper = new SnoopGetter(pr.getNode().clientCore.tempBucketFactory);
+		FetchContext context = pr.getHLSimpleClient().getFetchContext();
+		FetchWaiter fw = new FetchWaiter();
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
+		get.setBucketSnoop(snooper);
+
+    	try {
+			get.start(null, pr.getNode().clientCore.clientContext);
+			fw.waitForCompletion();
+		} catch (FetchException e) {
+			if (snooper.result == null) {
+				// really an error
+				Logger.error(KeyExplorerUtils.class, "pfehler", e);
+				throw e;
+			}
 		}
-		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri, (RequestClient) pr.getHLSimpleClient());
-		VerySimpleGet vs = new VerySimpleGet(ck, 0, pr.getHLSimpleClient().getFetchContext(), vsg);
-		vs.schedule(null, pr.getNode().clientCore.clientContext);
-		return new GetResult(vs.waitForCompletion(), vs.isMetadata());
+
+		return snooper.result;
 	}
 
 	public static FetchResult splitGet(PluginRespirator pr, Metadata metadata) throws MalformedURLException, LowLevelGetException, FetchException, MetadataParseException,

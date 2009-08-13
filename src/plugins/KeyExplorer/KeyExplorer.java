@@ -11,24 +11,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import com.db4o.ObjectContainer;
-
 import freenet.client.DefaultMIMETypes;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
-import freenet.client.HighLevelSimpleClient;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.client.ArchiveManager.ARCHIVE_TYPE;
 import freenet.client.async.KeyListenerConstructionException;
-import freenet.client.async.SplitFileFetcher;
 import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
 import freenet.keys.FreenetURI;
 import freenet.l10n.L10n.LANGUAGE;
 import freenet.node.LowLevelGetException;
-import freenet.node.RequestClient;
 import freenet.pluginmanager.DownloadPluginHTTPException;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
@@ -190,7 +185,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				} catch (MalformedURLException e) {
 					sendError(replysender, 5, "Malformed freenet uri: " + e.getMessage());
 					return;
-				} catch (LowLevelGetException e) {
+				} catch (FetchException e) {
 					sendError(replysender, 6, "Get failed: " + e.toString());
 					return;
 				}
@@ -222,7 +217,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 				} catch (MalformedURLException e) {
 					sendError(replysender, 5, "Malformed freenet uri: " + e.getMessage());
 					return;
-				} catch (LowLevelGetException e) {
+				} catch (FetchException e) {
 					sendError(replysender, 6, "Get failed: " + e.toString());
 					return;
 				}
@@ -337,6 +332,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		} catch (LowLevelGetException e) {
 			errors.add("Get failed (" + e.code + "): " + e.getMessage());
 		} catch (IOException e) {
+			Logger.error(this, "500", e);
 			errors.add("IO Error: " + e.getMessage());
 		} catch (MetadataParseException e) {
 			errors.add("Metadata Parse Error: " + e.getMessage());
