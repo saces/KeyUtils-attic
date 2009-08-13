@@ -218,8 +218,14 @@ public class KeyExplorerUtils {
 
 	public static FreenetURI sanitizeURI(List<String> errors, String key) throws MalformedURLException {
 		if (key == null) throw new NullPointerException();
+		FreenetURI uri = new FreenetURI(key);
+		return sanitizeURI(errors, uri);
+	}
 
-		FreenetURI tempURI = new FreenetURI(key);
+	public static FreenetURI sanitizeURI(List<String> errors, FreenetURI key) throws MalformedURLException {
+		if (key == null) throw new NullPointerException();
+
+		FreenetURI tempURI = key;
 
 		//get rid of metas, useles
 		if (tempURI.hasMetaStrings()) {
