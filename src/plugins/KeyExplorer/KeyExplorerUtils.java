@@ -35,8 +35,6 @@ import freenet.client.async.GetCompletionCallback;
 import freenet.client.async.KeyListenerConstructionException;
 import freenet.client.async.SnoopBucket;
 import freenet.client.async.SplitFileFetcher;
-import freenet.keys.BaseClientKey;
-import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
 import freenet.node.LowLevelGetException;
 import freenet.node.RequestClient;
