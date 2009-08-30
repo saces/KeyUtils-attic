@@ -22,7 +22,7 @@ import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageMaker;
 import freenet.clients.http.PageNode;
 import freenet.keys.FreenetURI;
-import freenet.l10n.L10n.LANGUAGE;
+import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.node.LowLevelGetException;
 import freenet.pluginmanager.DownloadPluginHTTPException;
 import freenet.pluginmanager.FredPlugin;
