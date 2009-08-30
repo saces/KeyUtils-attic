@@ -50,7 +50,6 @@ import freenet.support.io.BucketTools;
  */
 public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
 
-	private static final long revision = 5000;
 	public static final String PLUGIN_URI = "/KeyExplorer";
 	private PluginRespirator m_pr;
 	private PageMaker m_pm;
@@ -968,7 +967,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public String getVersion() {
-		return "0.5α " + revision;
+		return Version.longVersionString;
 	}
 
 	public String getString(String key) {
@@ -981,7 +980,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 	}
 
 	public long getRealVersion() {
-		return revision;
+		return Version.version;
 	}
 
 }
