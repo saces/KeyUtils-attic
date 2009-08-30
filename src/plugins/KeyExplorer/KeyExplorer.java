@@ -618,12 +618,7 @@ public class KeyExplorer implements FredPlugin, FredPluginHTTP, FredPluginL10n, 
 		if (md.isSimpleManifest()) {
 			// a subdir
 			HashMap<String, Metadata> docs = md.getDocuments();
-			Metadata defaultDoc = null;
-			try {
-				defaultDoc = md.getDefaultDocument();
-			} catch (MetadataParseException e) {
-				//impossible;
-			}
+			Metadata defaultDoc = md.getDefaultDocument();
 
 			htmlTableRow.addChild(makeNameCell(prefix, name));
 			htmlTableRow.addChild(makeCell("(" + Integer.toString(docs.size())+" Items)"));
