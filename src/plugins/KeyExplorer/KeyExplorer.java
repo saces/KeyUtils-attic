@@ -41,7 +41,7 @@ import freenet.clients.http.PageNode;
 import freenet.keys.BaseClientKey;
 import freenet.keys.ClientKey;
 import freenet.keys.FreenetURI;
-import freenet.l10n.L10n.LANGUAGE;
+import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.node.LowLevelGetException;
 import freenet.node.RequestClient;
 import freenet.pluginmanager.DownloadPluginHTTPException;
