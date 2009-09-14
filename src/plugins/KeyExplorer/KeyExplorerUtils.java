@@ -72,7 +72,6 @@ public class KeyExplorerUtils {
 		}
 	}
 
-
 	public static Metadata simpleManifestGet(PluginRespirator pr, FreenetURI uri) throws MetadataParseException, FetchException, IOException {
 		GetResult res = simpleGet(pr, uri);
 		if (!res.isMetaData()) {
@@ -88,7 +87,7 @@ public class KeyExplorerUtils {
 		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
 		get.setBucketSnoop(snooper);
 
-    	try {
+		try {
 			get.start(null, pr.getNode().clientCore.clientContext);
 			fw.waitForCompletion();
 		} catch (FetchException e) {
@@ -310,6 +309,56 @@ public class KeyExplorerUtils {
 			}
 		}
 		return newMetadata;
+	}
+
+	private byte[] doDownload(PluginRespirator pluginRespirator, List<String> errors, String key) {
+	
+		if (errors.size() > 0) {
+			return null;
+		}
+		if (key == null || (key.trim().length() == 0)) {
+			errors.add("Are you jokingly? Empty URI");
+			return null;
+		}
+		try {
+			FreenetURI furi = sanitizeURI(errors, key);
+			GetResult getresult = simpleGet(pluginRespirator, furi);
+			if (getresult.isMetaData()) {
+				return unrollMetadata(pluginRespirator, errors, Metadata.construct(getresult.getData()));
+			} else {
+				return BucketTools.toByteArray(getresult.getData());
+			}
+		} catch (MalformedURLException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (LowLevelGetException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (MetadataParseException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (IOException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (FetchException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		} catch (KeyListenerConstructionException e) {
+			errors.add(e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static byte[] unrollMetadata(PluginRespirator pluginRespirator, List<String> errors, Metadata md) throws MalformedURLException, IOException, LowLevelGetException, FetchException, MetadataParseException, KeyListenerConstructionException {
+	
+		if (!md.isSplitfile()) {
+			errors.add("Unsupported Metadata: Not a Splitfile");
+			return null;
+		}
+		byte[] result = null;
+		result = BucketTools.toByteArray(splitGet(pluginRespirator, md).asBucket());
+		return result;
 	}
 
 }
