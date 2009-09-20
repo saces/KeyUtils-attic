@@ -42,9 +42,6 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException {
 
-		System.out.println("Path-Test: " + normalizePath(request.getPath()) + " -> " + uri);
-		
-		
 		String key;
 		String type;
 		boolean automf;

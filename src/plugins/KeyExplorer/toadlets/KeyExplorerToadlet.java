@@ -46,8 +46,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
-		System.out.println("Path-Test: " + normalizePath(request.getPath()) + " -> " + uri);
-		if (!request.getPath().toString().equals(path())) {
+		if (!normalizePath(request.getPath()).equals("/")) {
 			sendErrorPage(ctx, 404, "Not found", "the path '"+uri+"' was not found");
 			return;
 		}
@@ -106,14 +105,20 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	public void handleMethodPOST(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
-		System.out.println("Path-Test: " + normalizePath(request.getPath()) + " -> " + uri);
-		
+
+		List<String> errors = new LinkedList<String>();
+
+		if (!isFormPassword(request)) {
+			errors.add("Invalid form password");
+			makeMainPage(ctx, errors, null, 0, false, false, false);
+			return;
+		}
+
 		String key = request.getPartAsString("key", 1024);
 		int hexWidth = request.getIntPart("hexWidth", 32);
 		boolean automf = request.getPartAsString("automf", 128).length() > 0;
 		boolean deep = request.getPartAsString("deep", 128).length() > 0;
 		boolean ml = request.getPartAsString("ml", 128).length() > 0;
-		List<String> errors = new LinkedList<String>();
 		if (hexWidth < 1 || hexWidth > 1024) {
 			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
 			hexWidth = 32;

@@ -33,9 +33,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException {
-		System.out.println("Path-Test: " + normalizePath(request.getPath()) + " -> " + uri);
-		
-		if (!request.getPath().toString().equals(path())) {
+		if (!normalizePath(request.getPath()).equals("/")) {
 			sendErrorPage(ctx, 404, "Not found", "the path '"+uri+"' was not found");
 			return;
 		}
