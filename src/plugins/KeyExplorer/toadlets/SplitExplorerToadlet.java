@@ -39,35 +39,16 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 		
 		String key;
-		String type;
-		boolean automf;
-		boolean deep;
 		boolean ml;
-		int hexWidth;
-		String action;
-		if (request.isParameterSet("key")) {
-			key = request.getParam("key");
-			type = request.getParam("mftype");
-			automf = request.getParam("automf").length() > 0;
-			deep = request.getParam("deep").length() > 0;
-			ml = request.getParam("ml").length() > 0;
-			hexWidth = request.getIntParam("hexWidth", 32);
-			action = request.getParam("action");
+		if (request.isParameterSet(Globals.PARAM_URI)) {
+			key = request.getParam(Globals.PARAM_URI);
+			ml = request.getParam(Globals.PARAM_MULTILEVEL).length() > 0;
 		} else {
 			key = null;
-			type = null;
-			automf = true;
-			deep = true;
-			ml = true;
-			hexWidth = 32;
-			action = "";
+			ml = false;
 		}
 
 		List<String> errors = new LinkedList<String>();
-		if (hexWidth < 1 || hexWidth > 1024) {
-			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
-			hexWidth = 32;
-		}
 
 		makeMainPage(ctx, errors, key);
 	}
@@ -111,9 +92,9 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode browseForm = pCtx.pluginRespirator.addFormChild(browseContent, "/plugins/plugins.KeyExplorer.KeyExplorer/", "uriForm");
 		browseForm.addChild("#", "Freenetkey to explore: \u00a0 ");
 		if (uri != null)
-			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", "key", "70", uri });
+			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", Globals.PARAM_URI, "70", uri });
 		else
-			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", "key", "70" });
+			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", Globals.PARAM_URI, "70" });
 		browseForm.addChild("#", "\u00a0");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Explore!" });
 		browseForm.addChild("%", "<BR />");

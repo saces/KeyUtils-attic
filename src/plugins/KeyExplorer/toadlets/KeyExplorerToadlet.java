@@ -41,6 +41,9 @@ import freenet.support.io.BucketTools;
  */
 public class KeyExplorerToadlet extends WebInterfaceToadlet {
 
+	private static final String PARAM_AUTOMF = "automf";
+	private static final String PARAM_HEXWIDTH = "hexwidth";
+
 	public KeyExplorerToadlet(PluginContext context) {
 		super(context, KeyExplorer.PLUGIN_URI, "");
 	}
@@ -56,15 +59,13 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		boolean deep;
 		boolean ml;
 		int hexWidth;
-		String action;
-		if (request.isParameterSet("key")) {
-			key = request.getParam("key");
-			type = request.getParam("mftype");
-			automf = request.getParam("automf").length() > 0;
-			deep = request.getParam("deep").length() > 0;
-			ml = request.getParam("ml").length() > 0;
-			hexWidth = request.getIntParam("hexWidth", 32);
-			action = request.getParam("action");
+		if (request.isParameterSet(Globals.PARAM_URI)) {
+			key = request.getParam(Globals.PARAM_URI);
+			type = request.getParam(Globals.PARAM_MFTYPE);
+			automf = request.getParam(PARAM_AUTOMF).length() > 0;
+			deep = request.getParam(Globals.PARAM_RECURSIVE).length() > 0;
+			ml = request.getParam(Globals.PARAM_MULTILEVEL).length() > 0;
+			hexWidth = request.getIntParam(PARAM_HEXWIDTH, 32);
 		} else {
 			key = null;
 			type = null;
@@ -72,7 +73,6 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			deep = true;
 			ml = true;
 			hexWidth = 32;
-			action = "";
 		}
 		
 		String extraParams = "&hexwidth=" + hexWidth;
@@ -92,13 +92,13 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			hexWidth = 32;
 		}
 
-		if ("ZIPmanifest".equals(type)) {
+		if (Globals.MFTYPE_ZIP.equals(type)) {
 			throw new RedirectException("/KeyExplorer/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
 		}
-		if ("TARmanifest".equals(type)) {
+		if (Globals.MFTYPE_TAR.equals(type)) {
 			throw new RedirectException("/KeyExplorer/Site/?mftype=TARmanifest&key=" + key + extraParams);
 		}
-		if ("simplemanifest".equals(type)) {
+		if (Globals.MFTYPE_SIMPLE.equals(type)) {
 			throw new RedirectException("/KeyExplorer/Site/?mftype=simplemanifest&key=" + key + extraParams);
 		}
 		makeMainPage(ctx, errors, key, hexWidth, automf, deep, ml);
@@ -114,11 +114,11 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			return;
 		}
 
-		String key = request.getPartAsString("key", 1024);
-		int hexWidth = request.getIntPart("hexWidth", 32);
+		String key = request.getPartAsString(Globals.PARAM_URI, 1024);
+		int hexWidth = request.getIntPart(PARAM_HEXWIDTH, 32);
 		boolean automf = request.getPartAsString("automf", 128).length() > 0;
-		boolean deep = request.getPartAsString("deep", 128).length() > 0;
-		boolean ml = request.getPartAsString("ml", 128).length() > 0;
+		boolean deep = request.getPartAsString(Globals.PARAM_RECURSIVE, 128).length() > 0;
+		boolean ml = request.getPartAsString(Globals.PARAM_MULTILEVEL, 128).length() > 0;
 		if (hexWidth < 1 || hexWidth > 1024) {
 			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
 			hexWidth = 32;
@@ -337,9 +337,9 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode browseForm = pCtx.pluginRespirator.addFormChild(browseContent, path(), "uriForm");
 		browseForm.addChild("#", "Freenetkey to explore: \u00a0 ");
 		if (uri != null)
-			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", "key", "70", uri });
+			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", Globals.PARAM_URI, "70", uri });
 		else
-			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", "key", "70" });
+			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", Globals.PARAM_URI, "70" });
 		browseForm.addChild("#", "\u00a0");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Explore!" });
 		browseForm.addChild("%", "<BR />");
@@ -349,12 +349,12 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "checkbox", "automf", "ok" });
 		browseForm.addChild("#", "\u00a0auto open as manifest if possible\u00a0");
 		if (deep)
-			browseForm.addChild("input", new String[] { "type", "name", "value", "checked" }, new String[] { "checkbox", "deep", "ok", "checked" });
+			browseForm.addChild("input", new String[] { "type", "name", "value", "checked" }, new String[] { "checkbox", Globals.PARAM_RECURSIVE, "ok", "checked" });
 		else
-			browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "checkbox", "deep", "ok" });
+			browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "checkbox", Globals.PARAM_RECURSIVE, "ok" });
 		browseForm.addChild("#", "\u00a0parse manifest recursive (include multilevel metadata/subcontainers)\u00a0\u00a0");
 		browseForm.addChild("#", "Hex display columns:\u00a0");
-		browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", "hexWidth", "3", Integer.toString(hexWidth) });
+		browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", PARAM_HEXWIDTH, "3", Integer.toString(hexWidth) });
 		return browseBox;
 	}
 

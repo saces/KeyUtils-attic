@@ -21,7 +21,6 @@ import freenet.client.ArchiveManager.ARCHIVE_TYPE;
 import freenet.client.async.KeyListenerConstructionException;
 import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageNode;
-import freenet.clients.http.RedirectException;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.FreenetURI;
@@ -36,55 +35,125 @@ import freenet.support.api.HTTPRequest;
  */
 public class SiteExplorerToadlet extends WebInterfaceToadlet {
 
+	private volatile static boolean logDEBUG;
+
+	static {
+		Logger.registerClass(SiteExplorerToadlet.class);
+	}
+
 	public SiteExplorerToadlet(PluginContext context) {
 		super(context, KeyExplorer.PLUGIN_URI, "Site");
 	}
 
-	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException {
+	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 
 		String key;
 		String type;
-		boolean automf;
 		boolean deep;
 		boolean ml;
-		int hexWidth;
-		String action;
-		if (request.isParameterSet("key")) {
-			key = request.getParam("key");
-			type = request.getParam("mftype");
-			automf = request.getParam("automf").length() > 0;
-			deep = request.getParam("deep").length() > 0;
-			ml = request.getParam("ml").length() > 0;
-			hexWidth = request.getIntParam("hexWidth", 32);
-			action = request.getParam("action");
+		if (request.isParameterSet(Globals.PARAM_URI)) {
+			key = request.getParam(Globals.PARAM_URI);
+			type = request.getParam(Globals.PARAM_MFTYPE);
+			deep = request.getParam(Globals.PARAM_RECURSIVE).length() > 0;
+			ml = request.getParam(Globals.PARAM_MULTILEVEL).length() > 0;
 		} else {
 			key = null;
 			type = null;
-			automf = true;
 			deep = true;
 			ml = true;
-			hexWidth = 32;
-			action = "";
 		}
 
 		List<String> errors = new LinkedList<String>();
-		if (hexWidth < 1 || hexWidth > 1024) {
-			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
-			hexWidth = 32;
+
+		if (Globals.MFTYPE_ZIP.equals(type)) {
+			makeManifestPage(ctx, errors, key, true, false, deep, ml);
+			return;
+		}
+		if (Globals.MFTYPE_TAR.equals(type)) {
+			makeManifestPage(ctx, errors, key, false, true, deep, ml);
+			return;
+		}
+		if (Globals.MFTYPE_SIMPLE.equals(type)) {
+			makeManifestPage(ctx, errors, key, false, false, deep, ml);
+			return;
+		}
+		makeMainPage(ctx, errors, key, deep, ml);
+	}
+
+	public void handleMethodPOST(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
+
+		List<String> errors = new LinkedList<String>();
+
+		if (!isFormPassword(request)) {
+			errors.add("Invalid form password");
+			makeMainPage(ctx, errors, null, false, false);
+			return;
 		}
 
-		if ("ZIPmanifest".equals(type)) {
-			makeManifestPage(ctx, errors, key, true, false, hexWidth, automf, deep, ml);
+		String key = request.getPartAsString(Globals.PARAM_URI, 1024);
+		boolean deep = request.getPartAsString(Globals.PARAM_RECURSIVE, 128).length() > 0;
+		boolean ml = request.getPartAsString(Globals.PARAM_MULTILEVEL, 128).length() > 0;
+		String mftype = request.getPartAsString(Globals.PARAM_MFTYPE, 128);
+
+		FreenetURI furi = null;
+		try {
+			furi = KeyExplorerUtils.sanitizeURI(errors, key);
+			key = furi.toString(false, false);
+		} catch (MalformedURLException e) {
+			if (logDEBUG) Logger.debug(this, "debug", e);
+			errors.add("Not a valid Frenet URI: " + e.getLocalizedMessage());
+		}
+		if (errors.size() > 0) {
+			makeMainPage(ctx, errors, key, deep, ml);
 			return;
 		}
-		if ("TARmanifest".equals(type)) {
-			makeManifestPage(ctx, errors, key, false, true, hexWidth, automf, deep, ml);
+
+		if (Globals.MFTYPE_AUTO.equals(mftype)) {
+			Metadata md = null;
+			try {
+				md = KeyExplorerUtils.simpleManifestGet(pluginContext.pluginRespirator, furi);
+			} catch (FetchException e) {
+				errors.add("Get failed (" + e.mode + "): " + e.getMessage());
+			} catch (MetadataParseException e) {
+				errors.add("Metadata Parse Error: " + e.getMessage());
+			}
+			if (errors.size() > 0) {
+				makeMainPage(ctx, errors, key, deep, ml);
+				return;
+			}
+			if (md.isArchiveManifest()) {
+				if (md.getArchiveType() == ARCHIVE_TYPE.TAR) {
+					mftype = Globals.MFTYPE_TAR;
+				} else if (md.getArchiveType() == ARCHIVE_TYPE.ZIP) {
+					mftype = Globals.MFTYPE_ZIP;
+				} else {
+					errors.add("Unknown Archive Type: " + md.getArchiveType().name());
+				}
+			} else if (md.isSimpleManifest()) {
+				mftype = Globals.MFTYPE_SIMPLE;
+			} else {
+				errors.add("Metadata is not a site.");
+			}
+		}
+
+		if (errors.size() > 0) {
+			makeMainPage(ctx, errors, key, deep, ml);
 			return;
 		}
-		if ("simplemanifest".equals(type)) {
-			makeManifestPage(ctx, errors, key, false, false, hexWidth, automf, deep, ml);
+
+		if (Globals.MFTYPE_ZIP.equals(mftype)) {
+			makeManifestPage(ctx, errors, key, true, false, deep, ml);
 			return;
+		} else if (Globals.MFTYPE_TAR.equals(mftype)) {
+			makeManifestPage(ctx, errors, key, false, true, deep, ml);
+			return;
+		} else if (Globals.MFTYPE_SIMPLE.equals(mftype)) {
+			makeManifestPage(ctx, errors, key, false, false, deep, ml);
+			return;
+		} else {
+			errors.add("Unknown parameter Manifest Type: " + mftype);
 		}
+
 		makeMainPage(ctx, errors, key, deep, ml);
 	}
 
@@ -131,23 +200,25 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 
 		browseContent.addChild("#", "List the content of a manifest");
 		HTMLNode browseForm = pCtx.pluginRespirator.addFormChild(browseContent, path(), "uriForm");
+		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "hidden", Globals.PARAM_MFTYPE, Globals.MFTYPE_AUTO });
+
 		browseForm.addChild("#", "Freenetkey to explore: \u00a0 ");
 		if (uri != null)
-			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", "key", "70", uri });
+			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", Globals.PARAM_URI, "70", uri });
 		else
-			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", "key", "70" });
+			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", Globals.PARAM_URI, "70" });
 		browseForm.addChild("#", "\u00a0");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Explore!" });
 		browseForm.addChild("%", "<BR />");
 		if (deep)
-			browseForm.addChild("input", new String[] { "type", "name", "value", "checked" }, new String[] { "checkbox", "deep", "ok", "checked" });
+			browseForm.addChild("input", new String[] { "type", "name", "value", "checked" }, new String[] { "checkbox", Globals.PARAM_RECURSIVE, "ok", "checked" });
 		else
-			browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "checkbox", "deep", "ok" });
+			browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "checkbox", Globals.PARAM_RECURSIVE, "ok" });
 		browseForm.addChild("#", "\u00a0parse manifest recursive (include multilevel metadata/subcontainers)");
 		return browseBox;
 	}
 
-	private void makeManifestPage(ToadletContext ctx, List<String> errors, String key, boolean zip, boolean tar, int hexWidth, boolean automf, boolean deep, boolean ml) throws ToadletContextClosedException, IOException {
+	private void makeManifestPage(ToadletContext ctx, List<String> errors, String key, boolean zip, boolean tar, boolean deep, boolean ml) throws ToadletContextClosedException, IOException {
 		PageNode page = pluginContext.pageMaker.getPageNode("KeyExplorer", ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
@@ -186,12 +257,12 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	
 		if (errors.size() > 0) {
 			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors));
-			contentNode.addChild(createUriBox(pluginContext, ((furi==null)?"":furi.toString(false, false)), automf, errors));
+			contentNode.addChild(createUriBox(pluginContext, ((furi==null)?"":furi.toString(false, false)), deep, errors));
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 			return;
 		}
 	
-		contentNode.addChild(createUriBox(pluginContext, furi.toString(false, false), automf, errors));
+		contentNode.addChild(createUriBox(pluginContext, furi.toString(false, false), deep, errors));
 		String title = "Key: " + furi.toString(false, false) + "\u00a0(Manifest)";
 		InfoboxNode listInfobox = pluginContext.pageMaker.getInfobox(title);
 		HTMLNode listBox = listInfobox.content;
@@ -470,9 +541,9 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			cell.addChild("span", "title", "A subdirectory inside container/chunk", "[s]");
 		else
 			cell.addChild("span", "title", "Metadata are in container, but points to external data (usually split files)", "[m]");
-	
+
 		cell.addChild("#", "\u00a0");
-	
+
 		if (md.isSimpleRedirect()) {
 			cell.addChild("span", "title", "Simple redirect", "SRE");
 		} else if (md.isSimpleManifest()) {
@@ -490,12 +561,12 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		} else {
 			cell.addChild("span", "title", "Unknown document type", "?");
 		}
-	
+
 		cell.addChild("#", "\u00a0");
-	
+
 		if (md.haveFlags()) {
 			boolean isFirst = true;
-	
+
 			if (md.isSplitfile()) {
 				cell.addChild("#", "(");
 				cell.addChild("span", "title", "Split file", "SF");

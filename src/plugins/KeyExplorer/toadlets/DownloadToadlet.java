@@ -47,7 +47,7 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 
 		List<String> errors = new LinkedList<String>();
 
-		String key = request.getParam("key").trim();
+		String key = request.getParam(Globals.PARAM_URI).trim();
 		String action = request.getParam("action").trim();
 
 		if (action.length() == 0) {

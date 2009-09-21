@@ -30,11 +30,11 @@ import plugins.fproxy.lib.WebInterfaceToadlet;
  *
  */
 public class ExtraToadlet extends WebInterfaceToadlet {
-	
+
 	private static final String PATH_DECOMPOSE = "/decompose";
 	private static final String PATH_COMPOSE_SSK = "/composeSSK";
 	private static final String PATH_COMPOSE_CHK = "/composeCHK";
-	private static final String FIELDNAME_URI = "key";
+
 	private static final String FIELDNAME_CRYPTO_ALGO = "crypto_algo";
 	private static final String FIELDNAME_COMPRESS_ALGO = "compress_algo";
 	private static final String FIELDNAME_CONTROL_DOCUMENT = "control_doc";
@@ -54,8 +54,8 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		}
 
 		String key;
-		if (request.isParameterSet(FIELDNAME_URI)) {
-			key = request.getParam("key");
+		if (request.isParameterSet(Globals.PARAM_URI)) {
+			key = request.getParam(Globals.PARAM_URI);
 		} else {
 			key = null;
 		}
@@ -77,7 +77,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		String path = normalizePath(request.getPath());
 
 		if (path.startsWith(PATH_DECOMPOSE)) {
-			String key = request.getPartAsString(FIELDNAME_URI, 1024);
+			String key = request.getPartAsString(Globals.PARAM_URI, 1024);
 
 			if (key == null || (key.trim().length() == 0)) {
 				errors.add("Are you jokingly? URI is empty");
@@ -275,15 +275,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 			return;
 		}
 
-		String key = request.getPartAsString(FIELDNAME_URI, 1024);
-		int hexWidth = request.getIntPart("hexWidth", 32);
-		boolean automf = request.getPartAsString("automf", 128).length() > 0;
-		boolean deep = request.getPartAsString("deep", 128).length() > 0;
-		boolean ml = request.getPartAsString("ml", 128).length() > 0;
-		if (hexWidth < 1 || hexWidth > 1024) {
-			errors.add("Hex display columns out of range. (1-1024). Set to 32 (default).");
-			hexWidth = 32;
-		}
+		String key = request.getPartAsString(Globals.PARAM_URI, 1024);
 		makeMainPage(ctx, errors, key);
 	}
 
@@ -327,9 +319,9 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		browseContent.addChild("#", "Decompose EXTRA from a Freenet URI:");
 		HTMLNode browseForm = pCtx.pluginRespirator.addFormChild(browseContent, path() + PATH_DECOMPOSE, "uriForm");
 		if (uri != null)
-			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", FIELDNAME_URI, "70", uri });
+			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", Globals.PARAM_URI, "70", uri });
 		else
-			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", FIELDNAME_URI, "70" });
+			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", Globals.PARAM_URI, "70" });
 		browseForm.addChild("#", "\u00a0");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Decompose!" });
 		browseForm.addChild("%", "<BR />");
