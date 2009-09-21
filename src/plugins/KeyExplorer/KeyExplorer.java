@@ -102,8 +102,9 @@ public class KeyExplorer implements FredPlugin, /*FredPluginHTTP,*/ FredPluginL1
 	}
 
 	public String getString(String key) {
-		if (logDEBUG)
-			Logger.debug(this, "GetKey : "+key + " -> ");
+		// disable, it is just to loud in log for now
+//		if (logDEBUG)
+//			Logger.debug(this, "GetKey : "+key);
 		return key;
 	}
 
