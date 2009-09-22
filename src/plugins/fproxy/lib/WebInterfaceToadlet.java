@@ -31,13 +31,19 @@ public abstract class WebInterfaceToadlet extends Toadlet implements LinkEnabled
 	}
 
 	/**
+	 * returns allways at min a "/", but "/path" is allways without trailing '/'
+	 * so "/path/to/toadlet/blah" and "/path/to/toadlet/blah/" cant be distinguished
+	 * 
 	 * @param path
-	 * @return the path without "/path/to/toadlet", returns allways at min "/", so "/path/to/toadlet" and "/path/to/toadlet/" cant be distinguished 
+	 * @return the path without "/path/to/toadlet"
 	 */
 	protected String normalizePath(String path) {
 		String result = path.substring(_path.length());
 		if (result.length() == 0) {
 			return "/";
+		}
+		if (result.endsWith("/")) {
+			result = result.substring(0, result.length()-1);
 		}
 		return result;
 	}
