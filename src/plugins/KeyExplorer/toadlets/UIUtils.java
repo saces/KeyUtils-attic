@@ -10,7 +10,7 @@ import freenet.support.HTMLNode;
 
 public class UIUtils {
 
-	static HTMLNode createErrorBox(PluginContext pCtx, List<String> errors) {
+	public static HTMLNode createErrorBox(PluginContext pCtx, List<String> errors) {
 		return createErrorBox(pCtx, errors, null, null, null);
 	}
 
