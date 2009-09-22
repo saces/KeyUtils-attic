@@ -11,7 +11,6 @@ import java.util.List;
 
 import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageNode;
-import freenet.clients.http.RedirectException;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.FreenetURI;
@@ -46,7 +45,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		super(context, KeyExplorer.PLUGIN_URI, "Extra");
 	}
 
-	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException {
+	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 
 		if (!normalizePath(request.getPath()).equals("/")) {
 			sendErrorPage(ctx, 404, "Not found", "the path '"+uri+"' was not found");
