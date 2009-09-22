@@ -36,7 +36,6 @@ import freenet.client.async.KeyListenerConstructionException;
 import freenet.client.async.SnoopBucket;
 import freenet.client.async.SplitFileFetcher;
 import freenet.keys.FreenetURI;
-import freenet.node.LowLevelGetException;
 import freenet.node.RequestClient;
 import freenet.node.RequestStarter;
 import freenet.pluginmanager.PluginRespirator;
@@ -101,7 +100,7 @@ public class KeyExplorerUtils {
 		return snooper.result;
 	}
 
-	public static FetchResult splitGet(PluginRespirator pr, Metadata metadata) throws MalformedURLException, LowLevelGetException, FetchException, MetadataParseException,
+	public static FetchResult splitGet(PluginRespirator pr, Metadata metadata) throws FetchException, MetadataParseException,
 			KeyListenerConstructionException {
 
 		final FetchWaiter fw = new FetchWaiter();
@@ -167,7 +166,7 @@ public class KeyExplorerUtils {
 		return fw.waitForCompletion();
 	}
 
-	public static Metadata splitManifestGet(PluginRespirator pr, Metadata metadata) throws MetadataParseException, LowLevelGetException, IOException, FetchException, KeyListenerConstructionException {
+	public static Metadata splitManifestGet(PluginRespirator pr, Metadata metadata) throws MetadataParseException, IOException, FetchException, KeyListenerConstructionException {
 		FetchResult res = splitGet(pr, metadata);
 		return Metadata.construct(res.asBucket());
 	}
@@ -208,8 +207,6 @@ public class KeyExplorerUtils {
 		FetchResult fr;
 		try {
 			fr = splitGet(pr, md);
-		} catch (LowLevelGetException e) {
-			throw new FetchException(e.code);
 		} catch (KeyListenerConstructionException e) {
 			throw new FetchException(FetchException.INTERNAL_ERROR, e);
 		}
@@ -331,9 +328,6 @@ public class KeyExplorerUtils {
 		} catch (MalformedURLException e) {
 			errors.add(e.getMessage());
 			e.printStackTrace();
-		} catch (LowLevelGetException e) {
-			errors.add(e.getMessage());
-			e.printStackTrace();
 		} catch (MetadataParseException e) {
 			errors.add(e.getMessage());
 			e.printStackTrace();
@@ -350,7 +344,7 @@ public class KeyExplorerUtils {
 		return null;
 	}
 
-	public static byte[] unrollMetadata(PluginRespirator pluginRespirator, List<String> errors, Metadata md) throws MalformedURLException, IOException, LowLevelGetException, FetchException, MetadataParseException, KeyListenerConstructionException {
+	public static byte[] unrollMetadata(PluginRespirator pluginRespirator, List<String> errors, Metadata md) throws MalformedURLException, IOException, FetchException, MetadataParseException, KeyListenerConstructionException {
 	
 		if (!md.isSplitfile()) {
 			errors.add("Unsupported Metadata: Not a Splitfile");

@@ -162,8 +162,6 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			}
 		} catch (MalformedURLException e) {
 			errors.add("MalformedURL: " + key);
-		} catch (LowLevelGetException e) {
-			errors.add("Get failed (" + e.code + "): " + e.getMessage());
 		} catch (IOException e) {
 			Logger.error(this, "500", e);
 			errors.add("IO Error: " + e.getMessage());

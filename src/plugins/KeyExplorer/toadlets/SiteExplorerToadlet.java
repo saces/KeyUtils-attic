@@ -248,8 +248,6 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			errors.add("IO Error: " + e.getMessage());
 		} catch (MetadataParseException e) {
 			errors.add("MetadataParseException");
-		} catch (LowLevelGetException e) {
-			errors.add("Get failed (" + e.code + "): " + e.getMessage());
 		} catch (KeyListenerConstructionException e) {
 			Logger.error(this, "Hu?", e);
 			errors.add("Internal Error: " + e.getMessage());
@@ -381,8 +379,6 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 						parseMetadataItem(htmlTable, "", subMd, prefix+name, furi, errors, deep, nestedLevel+1, -1);
 						return;
 					} catch (MetadataParseException e) {
-						err = e;
-					} catch (LowLevelGetException e) {
 						err = e;
 					} catch (IOException e) {
 						err = e;

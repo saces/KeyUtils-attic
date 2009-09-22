@@ -111,9 +111,6 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 		} catch (MalformedURLException e) {
 			errors.add(e.getMessage());
 			e.printStackTrace();
-		} catch (LowLevelGetException e) {
-			errors.add(e.getMessage());
-			e.printStackTrace();
 		} catch (MetadataParseException e) {
 			errors.add(e.getMessage());
 			e.printStackTrace();
