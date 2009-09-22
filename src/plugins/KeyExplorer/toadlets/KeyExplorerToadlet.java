@@ -29,7 +29,6 @@ import freenet.clients.http.RedirectException;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.FreenetURI;
-import freenet.node.LowLevelGetException;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
