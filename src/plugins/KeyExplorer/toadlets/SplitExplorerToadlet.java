@@ -116,7 +116,6 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		makeSplitPage(ctx, errors, furi);
 	}
 
-
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key) throws ToadletContextClosedException, IOException {
 		PageNode page = pluginContext.pageMaker.getPageNode(KeyExplorer.PLUGIN_TITLE, ctx);
 		HTMLNode outer = page.outer;
@@ -128,7 +127,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		try {
 			if (key != null && (key.trim().length() > 0)) {
-				furi = KeyExplorerUtils.sanitizeURI(errors, key);
+				furi = new FreenetURI(key);
 				retryUri = furi;
 			}
 		} catch (MalformedURLException e) {
