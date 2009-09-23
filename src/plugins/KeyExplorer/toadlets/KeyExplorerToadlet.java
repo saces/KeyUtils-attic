@@ -92,13 +92,13 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		if (Globals.MFTYPE_ZIP.equals(type)) {
-			throw new RedirectException("/KeyExplorer/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
+			throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
 		}
 		if (Globals.MFTYPE_TAR.equals(type)) {
-			throw new RedirectException("/KeyExplorer/Site/?mftype=TARmanifest&key=" + key + extraParams);
+			throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + key + extraParams);
 		}
 		if (Globals.MFTYPE_SIMPLE.equals(type)) {
-			throw new RedirectException("/KeyExplorer/Site/?mftype=simplemanifest&key=" + key + extraParams);
+			throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + key + extraParams);
 		}
 		makeMainPage(ctx, errors, key, hexWidth, automf, deep, ml);
 	}
@@ -197,15 +197,15 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 				if (md != null) {
 					if (automf && md.isArchiveManifest()) {
 						if (md.getArchiveType() == ARCHIVE_TYPE.TAR) {
-							throw new RedirectException("/KeyExplorer/Site/?mftype=TARmanifest&key=" + furi + extraParams);
+							throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + furi + extraParams);
 						} else if (md.getArchiveType() == ARCHIVE_TYPE.ZIP) {
-							throw new RedirectException("/KeyExplorer/Site/?mftype=ZIPmanifest&key=" + furi + extraParams);
+							throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + furi + extraParams);
 						} else {
 							errors.add("Unknown Archive Type: " + md.getArchiveType().name());
 						}
 					}
 					if (automf && md.isSimpleManifest()) {
-						throw new RedirectException("/KeyExplorer/Site/?mftype=simplemanifest&key=" + furi + extraParams);
+						throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams);
 					}
 				}
 			}
@@ -280,19 +280,19 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					metaBox.addChild("%", "<BR />");
 
 					if (md.isSimpleManifest()) {
-						metaBox.addChild(new HTMLNode("a", "href", "/KeyExplorer/Site/?mftype=simplemanifest&key=" + furi + extraParams, "reopen as manifest"));
+						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams, "reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
 					if (md.isArchiveManifest()) {
-						metaBox.addChild(new HTMLNode("a", "href", "/KeyExplorer/Site/?mftype=" + md.getArchiveType().name() + "manifest&key=" + furi + extraParams,
+						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/Site/?mftype=" + md.getArchiveType().name() + "manifest&key=" + furi + extraParams,
 								"reopen as manifest"));
 						metaBox.addChild("%", "<BR />");
 					}
 					if (md.isMultiLevelMetadata()) {
 						if (ml)
-							metaBox.addChild(new HTMLNode("a", "href", "/KeyExplorer/?key=" + furi + extraParams, "explore multilevel"));
+							metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + furi + extraParams, "explore multilevel"));
 						else
-							metaBox.addChild(new HTMLNode("a", "href", "/KeyExplorer/?ml=checked&key=" + furi + extraParams, "explore multilevel"));
+							metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?ml=checked&key=" + furi + extraParams, "explore multilevel"));
 						metaBox.addChild("%", "<BR />");
 					}
 
@@ -303,14 +303,14 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						metaBox.addChild("#", "\u00a0");
 						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + sfrUri, "open"));
 						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", "/KeyExplorer/?key=" + sfrUri + extraParams, "explore"));
+						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + sfrUri + extraParams, "explore"));
 					} else {
 						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));
 					}
 					metaBox.addChild("%", "<BR />");
 
 					if ((uri == null) && md.isSplitfile() ) {
-						metaBox.addChild(new HTMLNode("a", "href", "/KeyExplorer/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
+						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
 						metaBox.addChild("%", "<BR />");
 					}
 				}

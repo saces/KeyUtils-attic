@@ -344,7 +344,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
 			if (md.isSingleFileRedirect()) {
-				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
+				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
 			} else {
 				htmlTableRow.addChild(makeCell("Sorry, I won't deal with multilevel metadata here even though they are valid."));
 			}
@@ -357,9 +357,9 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
 			if (md.isSingleFileRedirect())
-				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
+				htmlTableRow.addChild(makeTargetCell(md, furi + fname, new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
 			else
-				htmlTableRow.addChild(makeEmptyCell());
+				htmlTableRow.addChild(makeTargetCell(md, furi + fname));
 	
 			// the row for the item itself is written, now look inside for multi level md
 			if (deep && md.isNoMimeEnabled() && md.isSingleFileRedirect()) {
@@ -430,7 +430,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	
 			if (md.isSingleFileRedirect()) {
 				String containerTarget = md.getSingleTarget().toString(false, false);
-				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", "/plugins/plugins.KeyExplorer.KeyExplorer/?mftype=" + md.getArchiveType().name() + "manifest&key=" + containerTarget, containerTarget)));
+				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?mftype=" + md.getArchiveType().name() + "manifest&key=" + containerTarget, containerTarget)));
 			} else {
 				htmlTableRow.addChild(makeEmptyCell());
 			}
@@ -597,5 +597,28 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode cell = new HTMLNode("td");
 		cell.addChild(content);
 		return cell;
+	}
+
+	private HTMLNode makeTargetCell(Metadata md, String uri, HTMLNode htmlNode) {
+		HTMLNode cell = new HTMLNode("td");
+		boolean isEmpty = true;
+		if (md != null && md.isSplitfile()) {
+			cell.addChild("#", "[");
+			cell.addChild("a", "href", KeyExplorer.PLUGIN_URI + "/Split/?key=" + uri, "show split");
+			cell.addChild("#", "]\u00a0");
+			isEmpty = false;
+		}
+		if (htmlNode != null) {
+			cell.addChild(htmlNode);
+			isEmpty = false;
+		}
+		if (isEmpty) {
+			cell.addChild("#", "\u00a0");
+		}
+		return cell;
+	}
+
+	private HTMLNode makeTargetCell(Metadata md, String uri) {
+		return makeTargetCell(md, uri, null);
 	}
 }
