@@ -12,7 +12,6 @@ import java.util.List;
 import com.db4o.ObjectContainer;
 
 import plugins.KeyExplorer.KeyExplorer;
-import plugins.KeyExplorer.KeyExplorerUtils;
 import plugins.fproxy.lib.PluginContext;
 import plugins.fproxy.lib.WebInterfaceToadlet;
 import freenet.client.FetchContext;
@@ -204,10 +203,11 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private HTMLNode createSplitDataBox(PluginContext pCtx, Metadata md) {
-		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file data blocks");
+		ClientCHK[] datakeys = md.getSplitfileDataKeys();
+		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file data blocks: " + datakeys.length);
 		HTMLNode browseBox = box.outer;
 		HTMLNode browseContent = box.content;
-		ClientCHK[] datakeys = md.getSplitfileDataKeys();
+		
 		for (ClientCHK key: datakeys) {
 			browseContent.addChild("#", key.getURI().toString(false, false));
 			browseContent.addChild("br");
@@ -216,10 +216,10 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private HTMLNode createSplitCheckBox(PluginContext pCtx, Metadata md) {
-		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file check blocks");
+		ClientCHK[] checkkeys = md.getSplitfileCheckKeys();
+		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file check blocks: " + checkkeys.length);
 		HTMLNode browseBox = box.outer;
 		HTMLNode browseContent = box.content;
-		ClientCHK[] checkkeys = md.getSplitfileCheckKeys();
 		for (ClientCHK key: checkkeys) {
 			browseContent.addChild("#", key.getURI().toString(false, false));
 			browseContent.addChild("br");
