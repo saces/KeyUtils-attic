@@ -232,12 +232,13 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		int segmentcounter = 1;
 		for (int offset = 0; offset < keys.length; offset += blockspersegment) {
-			InfoboxNode segmentInfo = pCtx.pageMaker.getInfobox("Segment #"+segmentcounter);
+			InfoboxNode segmentInfo = pCtx.pageMaker.getInfobox("Segment #"+segmentcounter++);
 			HTMLNode segmentBox = segmentInfo.outer;
 			HTMLNode segmentContent = segmentInfo.content;
 
-			int count = Math.min(blockspersegment, keys.length);
-			for (int i = 0; i < count ; i++) {
+			for (int i = 0; i < keys.length; i++) {
+				if (i + offset >= keys.length)
+					break;
 				FreenetURI key = keys[i+offset].getURI();
 				segmentContent.addChild("#", key.toString(false, false));
 				segmentContent.addChild("br");
