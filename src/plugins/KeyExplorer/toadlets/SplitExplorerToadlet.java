@@ -30,6 +30,7 @@ import freenet.keys.FreenetURI;
 import freenet.node.RequestClient;
 import freenet.node.RequestStarter;
 import freenet.pluginmanager.PluginRespirator;
+import freenet.support.Fields;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
@@ -199,6 +200,22 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		default: browseContent.addChild("#", "<unknown>");
 		}
 		browseContent.addChild("#", "\u00a0("+type+")");
+		browseContent.addChild("br");
+
+		if (type == Metadata.SPLITFILE_ONION_STANDARD) {
+			byte[] params = md.splitfileParams();
+			if((params == null) || (params.length < 8))
+				browseContent.addChild("#", "Error: No splitfile params!");
+			else {
+				int blocksPerSegment = Fields.bytesToInt(params, 0);
+				browseContent.addChild("#", "Data blocks per segment: " + blocksPerSegment);
+				browseContent.addChild("br");
+				browseContent.addChild("#", "Check blocks per segment: " + Fields.bytesToInt(params, 4));
+				browseContent.addChild("br");
+				int sfDB = md.getSplitfileDataKeys().length;
+				browseContent.addChild("#", "Segment count: " + ((sfDB / blocksPerSegment) + (sfDB % blocksPerSegment == 0 ? 0 : 1)));
+			}
+		}
 		return browseBox;
 	}
 
