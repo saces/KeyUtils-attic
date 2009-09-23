@@ -125,6 +125,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		FreenetURI furi = null;
 		FreenetURI retryUri = null;
 
+		// TODO sanitize uri USK->SSK
 		try {
 			if (key != null && (key.trim().length() > 0)) {
 				furi = new FreenetURI(key);
@@ -182,64 +183,67 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file: "+uri);
 		HTMLNode browseBox = box.outer;
 		HTMLNode browseContent = box.content;
-		browseContent.addChild(createSplitHeaderBox(pCtx, md));
-		browseContent.addChild(createSplitDataBox(pCtx, md));
-		browseContent.addChild(createSplitCheckBox(pCtx, md));
-		return browseBox;
-	}
 
-	private HTMLNode createSplitHeaderBox(PluginContext pCtx, Metadata md) {
-		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file info");
-		HTMLNode browseBox = box.outer;
-		HTMLNode browseContent = box.content;
-		browseContent.addChild("#", "Split file type: ");
+		InfoboxNode iBox = pCtx.pageMaker.getInfobox("Split file info");
+		HTMLNode infoBox = iBox.outer;
+		HTMLNode infoContent = iBox.content;
+		infoContent.addChild("#", "Split file type: ");
+
 		short type = md.getSplitfileType();
+		int dataBlocksPerSegment = -1;
+		int checkBlocksPerSegment = -1;
+
 		switch (type) {
-		case Metadata.SPLITFILE_NONREDUNDANT: browseContent.addChild("#", "Non redundant"); break;
-		case Metadata.SPLITFILE_ONION_STANDARD: browseContent.addChild("#", "FEC Onion standard"); break;
-		default: browseContent.addChild("#", "<unknown>");
+		case Metadata.SPLITFILE_NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
+		case Metadata.SPLITFILE_ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
+		default: infoContent.addChild("#", "<unknown>");
 		}
-		browseContent.addChild("#", "\u00a0("+type+")");
-		browseContent.addChild("br");
+		infoContent.addChild("#", "\u00a0("+type+")");
+		infoContent.addChild("br");
+
+		browseContent.addChild(infoBox);
 
 		if (type == Metadata.SPLITFILE_ONION_STANDARD) {
 			byte[] params = md.splitfileParams();
 			if((params == null) || (params.length < 8))
-				browseContent.addChild("#", "Error: No splitfile params!");
+				infoContent.addChild("#", "Error: No splitfile params!");
 			else {
-				int blocksPerSegment = Fields.bytesToInt(params, 0);
-				browseContent.addChild("#", "Data blocks per segment: " + blocksPerSegment);
-				browseContent.addChild("br");
-				browseContent.addChild("#", "Check blocks per segment: " + Fields.bytesToInt(params, 4));
-				browseContent.addChild("br");
+				dataBlocksPerSegment = Fields.bytesToInt(params, 0);
+				checkBlocksPerSegment = Fields.bytesToInt(params, 4);
+				infoContent.addChild("#", "Data blocks per segment: " + dataBlocksPerSegment);
+				infoContent.addChild("br");
+				infoContent.addChild("#", "Check blocks per segment: " + checkBlocksPerSegment);
+				infoContent.addChild("br");
 				int sfDB = md.getSplitfileDataKeys().length;
-				browseContent.addChild("#", "Segment count: " + ((sfDB / blocksPerSegment) + (sfDB % blocksPerSegment == 0 ? 0 : 1)));
+				infoContent.addChild("#", "Segment count: " + ((sfDB / dataBlocksPerSegment) + (sfDB % dataBlocksPerSegment == 0 ? 0 : 1)));
 			}
+			browseContent.addChild(createSegmentedBox(pCtx, "data", md.getSplitfileDataKeys(), dataBlocksPerSegment));
+			browseContent.addChild(createSegmentedBox(pCtx, "check", md.getSplitfileCheckKeys(), checkBlocksPerSegment));
+		} else if (type == Metadata.SPLITFILE_NONREDUNDANT) {
+			browseContent.addChild(createSegmentedBox(pCtx, "data", md.getSplitfileDataKeys(), -1));
 		}
 		return browseBox;
 	}
 
-	private HTMLNode createSplitDataBox(PluginContext pCtx, Metadata md) {
-		ClientCHK[] datakeys = md.getSplitfileDataKeys();
-		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file data blocks: " + datakeys.length);
+	private HTMLNode createSegmentedBox(PluginContext pCtx, String title, ClientCHK[] keys, int blockspersegment) {
+		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file "+title+" blocks: " + keys.length);
 		HTMLNode browseBox = box.outer;
 		HTMLNode browseContent = box.content;
-		
-		for (ClientCHK key: datakeys) {
-			browseContent.addChild("#", key.getURI().toString(false, false));
-			browseContent.addChild("br");
-		}
-		return browseBox;
-	}
 
-	private HTMLNode createSplitCheckBox(PluginContext pCtx, Metadata md) {
-		ClientCHK[] checkkeys = md.getSplitfileCheckKeys();
-		InfoboxNode box = pCtx.pageMaker.getInfobox("Split file check blocks: " + checkkeys.length);
-		HTMLNode browseBox = box.outer;
-		HTMLNode browseContent = box.content;
-		for (ClientCHK key: checkkeys) {
-			browseContent.addChild("#", key.getURI().toString(false, false));
-			browseContent.addChild("br");
+		int segmentcounter = 1;
+		for (int offset = 0; offset < keys.length; offset += blockspersegment) {
+			InfoboxNode segmentInfo = pCtx.pageMaker.getInfobox("Segment #"+segmentcounter);
+			HTMLNode segmentBox = segmentInfo.outer;
+			HTMLNode segmentContent = segmentInfo.content;
+
+			int count = Math.min(blockspersegment, keys.length);
+			for (int i = 0; i < count ; i++) {
+				FreenetURI key = keys[i+offset].getURI();
+				segmentContent.addChild("#", key.toString(false, false));
+				segmentContent.addChild("br");
+			}
+
+			browseContent.addChild(segmentBox);
 		}
 		return browseBox;
 	}
