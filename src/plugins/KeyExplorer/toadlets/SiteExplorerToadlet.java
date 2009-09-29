@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import plugins.KeyExplorer.KeyExplorer;
 import plugins.KeyExplorer.KeyExplorerUtils;
@@ -313,9 +314,8 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 				parseMetadataItem(htmlTable, "/", defaultDoc, prefix+name, furi, errors, deep, nestedLevel, subLevel+1);
 			}
 	
-			for (String iname: docs.keySet()) {
-				Metadata doc = docs.get(iname);
-				parseMetadataItem(htmlTable, iname, doc, prefix+name+'/', furi, errors, deep, nestedLevel, subLevel+1);
+			for (Entry<String, Metadata> entry: docs.entrySet()) {
+				parseMetadataItem(htmlTable, entry.getKey(), entry.getValue(), prefix+name+'/', furi, errors, deep, nestedLevel, subLevel+1);
 			}
 			return;
 		}

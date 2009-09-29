@@ -7,9 +7,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -289,9 +289,9 @@ public class KeyExplorerUtils {
 
 	private static HashMap<String, Object> parseMetadata(HashMap<String, Metadata> oldMetadata, FreenetURI oldUri, String prefix) throws MalformedURLException {
 		HashMap<String, Object> newMetadata = new HashMap<String, Object>();
-		Set<String> set = oldMetadata.keySet();
-		for(String name:set) {
-			Metadata md = oldMetadata.get(name);
+		for(Entry<String, Metadata> entry:oldMetadata.entrySet()) {
+			Metadata md = entry.getValue();
+			String name = entry.getKey();
 			if (md.isArchiveInternalRedirect()) {
 				String fname = prefix + name;
 				FreenetURI newUri = new FreenetURI(oldUri.toString(false, false) + "/"+ fname);
