@@ -127,6 +127,12 @@
 			</fileset>
 			<fileset dir="${build}/"/>
 		</jar>
+		<zip destfile="${dist}/KeyExplorer-src.zip" filesonly="true" compress="true">
+			<zipfileset dir="."
+				prefix = ""
+				excludes=".*"
+				includes="src/**/* build.xml" />
+		</zip>
 	</target>
 
 	<!-- ================================================== -->
