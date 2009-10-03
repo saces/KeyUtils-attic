@@ -41,11 +41,11 @@ import freenet.support.api.HTTPRequest;
  */
 public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
-	private static class SnoopGetter implements SnoopMetadata {
+	private static class SnoopFirst implements SnoopMetadata {
 
 		private Metadata firstSplit;
 
-		SnoopGetter () {
+		SnoopFirst () {
 		}
 
 		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
@@ -268,7 +268,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	public static Metadata splitGet(PluginRespirator pr, FreenetURI uri) throws FetchException {
-		SnoopGetter snooper = new SnoopGetter();
+		SnoopFirst snooper = new SnoopFirst();
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
 		FetchWaiter fw = new FetchWaiter();
 		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
