@@ -20,4 +20,5 @@ public class Globals {
 	static final String PARAM_MFTYPE = "mftype";
 	static final String PARAM_RECURSIVE = "deep";
 	static final String PARAM_MULTILEVEL = "ml";
+	static final String PARAM_LEVEL = "level";
 }

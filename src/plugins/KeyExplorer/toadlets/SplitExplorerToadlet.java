@@ -40,8 +40,12 @@ import freenet.support.api.HTTPRequest;
  *
  */
 public class SplitExplorerToadlet extends WebInterfaceToadlet {
+	
+	private static abstract class AbstractSnoop implements SnoopMetadata {
+		abstract Metadata getResult();
+	}
 
-	private static class SnoopFirst implements SnoopMetadata {
+	private static class SnoopFirst extends AbstractSnoop {
 
 		private Metadata firstSplit;
 
@@ -52,6 +56,52 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			if (meta.isSplitfile()) {
 				firstSplit = meta;
 				return true;
+			}
+			return false;
+		}
+
+		@Override
+		Metadata getResult() {
+			return firstSplit;
+		}
+	}
+
+	private static class SnoopLast extends AbstractSnoop {
+
+		private Metadata lastSplit;
+
+		SnoopLast () {
+		}
+
+		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
+			if (meta.isSplitfile()) {
+				lastSplit = meta;
+			}
+			return false;
+		}
+
+		@Override
+		Metadata getResult() {
+			return lastSplit;
+		}
+	}
+
+	private static class SnoopLevel implements SnoopMetadata {
+
+		private final int _level;
+		private Metadata lastSplit;
+		private int lastLevel;
+
+		SnoopLevel (int level) {
+			_level = level;
+			lastLevel = 0;
+		}
+
+		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
+			if (meta.isSplitfile()) {
+				lastSplit = meta;
+				lastLevel++;
+				if (lastLevel >= _level) return true;
 			}
 			return false;
 		}
@@ -69,17 +119,20 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		
 		String key;
 		boolean ml;
+		int level;
 		if (request.isParameterSet(Globals.PARAM_URI)) {
 			key = request.getParam(Globals.PARAM_URI);
 			ml = request.getParam(Globals.PARAM_MULTILEVEL).length() > 0;
+			level = request.getIntParam(Globals.PARAM_LEVEL, 0);
 		} else {
 			key = null;
 			ml = false;
+			level = 0;
 		}
 
 		List<String> errors = new LinkedList<String>();
 
-		makeMainPage(ctx, errors, key);
+		makeMainPage(ctx, errors, key, level);
 	}
 
 	public void handleMethodPOST(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -88,7 +141,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		if (!isFormPassword(request)) {
 			errors.add("Invalid form password");
-			makeMainPage(ctx, errors, null);
+			makeMainPage(ctx, errors);
 			return;
 		}
 
@@ -96,6 +149,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		boolean deep = request.getPartAsString(Globals.PARAM_RECURSIVE, 128).length() > 0;
 		boolean ml = request.getPartAsString(Globals.PARAM_MULTILEVEL, 128).length() > 0;
 		String mftype = request.getPartAsString(Globals.PARAM_MFTYPE, 128);
+		int level = request.getIntPart(Globals.PARAM_LEVEL, 0);
 
 		FreenetURI furi = null;
 		if (key.trim().length() == 0) {
@@ -110,13 +164,17 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			}
 		}
 		if (errors.size() > 0) {
-			makeMainPage(ctx, errors, null);
+			makeMainPage(ctx, errors);
 			return;
 		}
-		makeSplitPage(ctx, errors, furi);
+		makeSplitPage(ctx, errors, furi, level);
 	}
 
-	private void makeMainPage(ToadletContext ctx, List<String> errors, String key) throws ToadletContextClosedException, IOException {
+	private void makeMainPage(ToadletContext ctx, List<String> errors) throws ToadletContextClosedException, IOException {
+		makeMainPage(ctx, errors, null, 0);
+	}
+
+	private void makeMainPage(ToadletContext ctx, List<String> errors, String key, int level) throws ToadletContextClosedException, IOException {
 		PageNode page = pluginContext.pageMaker.getPageNode(KeyExplorer.PLUGIN_TITLE, ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
@@ -135,7 +193,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			errors.add("MalformedURL: " + key);
 		}
 
-		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)));
+		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)), level);
 
 		if (errors.size() > 0) {
 			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors, path(), retryUri, null));
@@ -147,7 +205,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 
-	private void makeSplitPage(ToadletContext ctx, List<String> errors, FreenetURI furi) throws ToadletContextClosedException, IOException {
+	private void makeSplitPage(ToadletContext ctx, List<String> errors, FreenetURI furi, int level) throws ToadletContextClosedException, IOException {
 		PageNode page = pluginContext.pageMaker.getPageNode(KeyExplorer.PLUGIN_TITLE, ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
@@ -155,14 +213,22 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		String extraParams = "";
 		FreenetURI retryUri = null;
 		Metadata md = null;
-		try {
-			md = splitGet(pluginContext.pluginRespirator, furi);
-		} catch (FetchException e) {
-			Logger.error(this, "debug", e);
-			errors.add(e.getLocalizedMessage());
+		if (level < 1) {
+			try {
+				md = splitGet(pluginContext.pluginRespirator, furi, (level < 0));
+			} catch (FetchException e) {
+				Logger.error(this, "debug", e);
+				errors.add(e.getLocalizedMessage());
+			}
+		} else {
+			try {
+				md = splitGet(pluginContext.pluginRespirator, furi, level);
+			} catch (FetchException e) {
+				Logger.error(this, "debug", e);
+				errors.add(e.getLocalizedMessage());
+			}
 		}
-
-		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)));
+		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)), level);
 
 		if (errors.size() > 0) {
 			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors, path(), retryUri, null));
@@ -249,7 +315,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		return browseBox;
 	}
 
-	private HTMLNode createUriBox(PluginContext pCtx, String uri) {
+	private HTMLNode createUriBox(PluginContext pCtx, String uri, int level) {
 		InfoboxNode box = pCtx.pageMaker.getInfobox("Explore a split file");
 		HTMLNode browseBox = box.outer;
 		HTMLNode browseContent = box.content;
@@ -264,11 +330,21 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		browseForm.addChild("#", "\u00a0");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Explore!" });
 		browseForm.addChild("br");
+		browseForm.addChild("#", "Level:\u00a0");
+		if (uri != null)
+			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", Globals.PARAM_LEVEL, "2", Integer.toString(level) });
+		else
+			browseForm.addChild("input", new String[] { "type", "name", "size", "value" }, new String[] { "text", Globals.PARAM_LEVEL, "2", "0" });
+		browseForm.addChild("#", "\u00a00=first, -1=last, n=jump over n split levels");
 		return browseBox;
 	}
 
-	public static Metadata splitGet(PluginRespirator pr, FreenetURI uri) throws FetchException {
-		SnoopFirst snooper = new SnoopFirst();
+	private Metadata splitGet(PluginRespirator pr, FreenetURI uri, boolean last) throws FetchException {
+		AbstractSnoop snooper;
+		if (last)
+			snooper = new SnoopLast();
+		else
+			snooper = new SnoopFirst();
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
 		FetchWaiter fw = new FetchWaiter();
 		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
@@ -278,13 +354,38 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			get.start(null, pr.getNode().clientCore.clientContext);
 			fw.waitForCompletion();
 		} catch (FetchException e) {
-			if (snooper.firstSplit == null) {
+			if (snooper.getResult() == null) {
 				// really an error
-				Logger.error(SplitExplorerToadlet.class, "pfehler", e);
 				throw e;
 			}
 		}
+		Metadata result = snooper.getResult();
+		if (result == null) {
+			throw new FetchException(FetchException.INVALID_METADATA, "URI does not point to a split file");
+		}
+		return result;
+	}
 
-		return snooper.firstSplit;
+	private Metadata splitGet(PluginRespirator pr, FreenetURI uri, int level) throws FetchException {
+		SnoopLevel snooper = new SnoopLevel(level);
+		FetchContext context = pr.getHLSimpleClient().getFetchContext();
+		FetchWaiter fw = new FetchWaiter();
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
+		get.setMetaSnoop(snooper);
+
+		try {
+			get.start(null, pr.getNode().clientCore.clientContext);
+			fw.waitForCompletion();
+		} catch (FetchException e) {
+			if (snooper.lastSplit == null) {
+				// really an error
+				throw e;
+			}
+		}
+		Metadata result = snooper.lastSplit;
+		if (result == null) {
+			throw new FetchException(FetchException.INVALID_METADATA, "URI does not point to a split file");
+		}
+		return snooper.lastSplit;
 	}
 }
