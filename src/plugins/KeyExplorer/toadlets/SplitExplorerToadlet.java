@@ -101,7 +101,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			if (meta.isSplitfile()) {
 				lastSplit = meta;
 				lastLevel++;
-				if (lastLevel >= _level) return true;
+				if (lastLevel > _level) return true;
 			}
 			return false;
 		}
@@ -301,7 +301,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			InfoboxNode segmentInfo = pCtx.pageMaker.getInfobox("Segment #"+segmentcounter++);
 			HTMLNode segmentBox = segmentInfo.outer;
 			HTMLNode segmentContent = segmentInfo.content;
-
+			segmentContent.addChild("%", "<div lang=\"en\" style=\"font-family: monospace;\">\n");
 			for (int i = 0; i < keys.length; i++) {
 				if (i + offset >= keys.length)
 					break;
@@ -309,7 +309,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 				segmentContent.addChild("#", key.toString(false, false));
 				segmentContent.addChild("br");
 			}
-
+			segmentContent.addChild("%", "\n</div>");
 			browseContent.addChild(segmentBox);
 		}
 		return browseBox;
