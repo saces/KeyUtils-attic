@@ -241,7 +241,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					} else {
 						metaBox.addChild("#", "<Unknown document type>");
 					}
-					metaBox.addChild("%", "<BR />");
+					metaBox.addChild("br");
 
 					if (md.haveFlags()) {
 						metaBox.addChild("#", "Flags:\u00a0");
@@ -261,7 +261,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						if (isFirst)
 							metaBox.addChild("#", "<No flag set>");
 					}
-					metaBox.addChild("%", "<BR />");
+					metaBox.addChild("br");
 
 					if (md.isCompressed()) {
 						metaBox.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes.");
@@ -269,31 +269,31 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						metaBox.addChild("#", "Uncompressed");
 					}
 
-					metaBox.addChild("%", "<BR />");
+					metaBox.addChild("br");
 
 					if (md.isSplitfile()) {
 						metaBox.addChild("#", "Splitfile size\u00a0=\u00a0" + md.dataLength() + " bytes.");
-						metaBox.addChild("%", "<BR />");
+						metaBox.addChild("br");
 					}
 
 					metaBox.addChild("#", "Options:");
-					metaBox.addChild("%", "<BR />");
+					metaBox.addChild("br");
 
 					if (md.isSimpleManifest()) {
 						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams, "reopen as manifest"));
-						metaBox.addChild("%", "<BR />");
+						metaBox.addChild("br");
 					}
 					if (md.isArchiveManifest()) {
 						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/Site/?mftype=" + md.getArchiveType().name() + "manifest&key=" + furi + extraParams,
 								"reopen as manifest"));
-						metaBox.addChild("%", "<BR />");
+						metaBox.addChild("br");
 					}
 					if (md.isMultiLevelMetadata()) {
 						if (ml)
 							metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + furi + extraParams, "explore multilevel"));
 						else
 							metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?ml=checked&key=" + furi + extraParams, "explore multilevel"));
-						metaBox.addChild("%", "<BR />");
+						metaBox.addChild("br");
 					}
 
 					FreenetURI uri = md.getSingleTarget();
@@ -307,11 +307,11 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					} else {
 						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));
 					}
-					metaBox.addChild("%", "<BR />");
+					metaBox.addChild("br");
 
 					if ((uri == null) && md.isSplitfile() ) {
 						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
-						metaBox.addChild("%", "<BR />");
+						metaBox.addChild("br");
 					}
 				}
 			}
@@ -339,7 +339,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", Globals.PARAM_URI, "70" });
 		browseForm.addChild("#", "\u00a0");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Explore!" });
-		browseForm.addChild("%", "<BR />");
+		browseForm.addChild("br");
 		if (automf)
 			browseForm.addChild("input", new String[] { "type", "name", "value", "checked" }, new String[] { "checkbox", "automf", "ok", "checked" });
 		else

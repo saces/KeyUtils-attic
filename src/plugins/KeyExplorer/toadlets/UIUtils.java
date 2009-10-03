@@ -20,7 +20,7 @@ public class UIUtils {
 		HTMLNode errorBox = box.content;
 		for (String error : errors) {
 			errorBox.addChild("#", error);
-			errorBox.addChild("%", "<BR />");
+			errorBox.addChild("br");
 		}
 		if (retryUri != null) {
 			errorBox.addChild("#", "Retry: ");

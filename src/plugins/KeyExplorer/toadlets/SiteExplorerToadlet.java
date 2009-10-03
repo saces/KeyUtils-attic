@@ -209,7 +209,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", Globals.PARAM_URI, "70" });
 		browseForm.addChild("#", "\u00a0");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Explore!" });
-		browseForm.addChild("%", "<BR />");
+		browseForm.addChild("br");
 		if (deep)
 			browseForm.addChild("input", new String[] { "type", "name", "value", "checked" }, new String[] { "checkbox", Globals.PARAM_RECURSIVE, "ok", "checked" });
 		else

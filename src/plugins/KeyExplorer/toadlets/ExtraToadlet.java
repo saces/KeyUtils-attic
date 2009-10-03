@@ -110,20 +110,20 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 			resultContent.addChild("#", "Key type: ");
 			if (furi.isCHK()) {
 				resultContent.addChild("#", "CHK");
-				resultContent.addChild("%", "<BR />");
+				resultContent.addChild("br");
 
 				// byte 0 reserved for now
 
 				resultContent.addChild("#", "Crypto algorithm: "+ (extra[1]));
 				if (extra[1] == Key.ALGO_AES_PCFB_256_SHA256)
 					resultContent.addChild("#", " (AES_PCFB_256_SHA256)");
-				resultContent.addChild("%", "<BR />");
+				resultContent.addChild("br");
 
 				if ((extra[2] & 0x02) == 0)
 					resultContent.addChild("#", "payload");
 				else
 					resultContent.addChild("#", "Control document");
-				resultContent.addChild("%", "<BR />");
+				resultContent.addChild("br");
 
 				short compressAlgorithm = (short)(((extra[3] & 0xff) << 8) + (extra[4] & 0xff));
 				resultContent.addChild("#", "Compress algorithm: "+ compressAlgorithm);
@@ -142,21 +142,21 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 				}
 			} else {
 				resultContent.addChild("#", "SSK");
-				resultContent.addChild("%", "<BR />");
+				resultContent.addChild("br");
 
 				resultContent.addChild("#", "SSK version: "+ (extra[0]));
-				resultContent.addChild("%", "<BR />");
+				resultContent.addChild("br");
 
 				if (extra[1] == 0)
 					resultContent.addChild("#", "fetch (public) URI");
 				else
 					resultContent.addChild("#", "insert (private) URI");
-				resultContent.addChild("%", "<BR />");
+				resultContent.addChild("br");
 
 				resultContent.addChild("#", "Crypto algorithm: "+ (extra[2]));
 				if (extra[2] == Key.ALGO_AES_PCFB_256_SHA256)
 					resultContent.addChild("#", " (AES_PCFB_256_SHA256)");
-				resultContent.addChild("%", "<BR />");
+				resultContent.addChild("br");
 
 				short hashAlgorithm = (short)(((extra[3] & 0xff) << 8) + (extra[4] & 0xff));
 				resultContent.addChild("#", "Hash algorithm: "+ hashAlgorithm);
@@ -183,7 +183,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 			resultContent.addChild("#", "', Control='");
 			resultContent.addChild("#", s_control);
 			resultContent.addChild("#", "'");
-			resultContent.addChild("%", "<BR />");
+			resultContent.addChild("br");
 
 			byte[] extra = {0, 0, 0, 0, 0};
 			try {
@@ -208,7 +208,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 				sb.append("\u00A0");
 			}
 			resultContent.addChild("#", sb.toString());
-			resultContent.addChild("%", "<BR />");
+			resultContent.addChild("br");
 
 			resultContent.addChild("#", "Your EXTRA (base64): ");
 			resultContent.addChild("#", Base64.encode(extra));
@@ -236,7 +236,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 			resultContent.addChild("#", "', Hash='");
 			resultContent.addChild("#", s_hash);
 			resultContent.addChild("#", "'");
-			resultContent.addChild("%", "<BR />");
+			resultContent.addChild("br");
 
 			byte[] extra = {0, 0, 0, 0, 0};
 			try {
@@ -265,7 +265,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 				sb.append("\u00A0");
 			}
 			resultContent.addChild("#", sb.toString());
-			resultContent.addChild("%", "<BR />");
+			resultContent.addChild("br");
 
 			resultContent.addChild("#", "Your EXTRA (base64): ");
 			resultContent.addChild("#", Base64.encode(extra));
@@ -323,7 +323,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 			browseForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", Globals.PARAM_URI, "70" });
 		browseForm.addChild("#", "\u00a0");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Decompose!" });
-		browseForm.addChild("%", "<BR />");
+		browseForm.addChild("br");
 		return browseBox;
 	}
 
@@ -399,7 +399,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 
 		cell.addChild(compressselect);
 
-		browseForm.addChild("%", "<BR />");
+		browseForm.addChild("br");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Compose CHK!" });
 		return browseBox;
 	}
@@ -470,7 +470,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 
 		cell.addChild(hashselect);
 
-		browseForm.addChild("%", "<BR />");
+		browseForm.addChild("br");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Compose SSK!" });
 		return browseBox;
 	}
