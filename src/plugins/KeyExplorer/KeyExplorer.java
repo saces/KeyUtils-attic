@@ -47,12 +47,7 @@ public class KeyExplorer implements FredPlugin, /*FredPluginHTTP,*/ FredPluginL1
 
 	public void handle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) {
 		try {
-			try {
-				fcpHandler.handle(replysender, params, data, accesstype);
-			} catch (UnsupportedOperationException uoe) {
-				Logger.error(this, "TODO ERROR? "+uoe, uoe);
-				fcpHandler.sendError(replysender, FCPException.INTERNAL, "<unknown>", uoe.toString());
-			}
+			fcpHandler.handle(replysender, params, data, accesstype);
 		} catch (PluginNotFoundException pnfe) {
 			Logger.error(this, "Connction to request sender Lost.", pnfe);
 		}

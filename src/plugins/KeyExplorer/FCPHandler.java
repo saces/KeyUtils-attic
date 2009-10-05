@@ -20,97 +20,70 @@ public class FCPHandler extends AbstractFCPHandler {
 
 	/**
 	 * @param accesstype
+	 * @throws PluginNotFoundException 
 	 */
-	public void handle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) throws PluginNotFoundException {
-			if (params == null) {
-				sendError(replysender, 0, "<void>", "Got void message");
+	@Override
+	public void handle(PluginReplySender replysender, String command, String identifier, SimpleFieldSet params, Bucket data, int accesstype) throws PluginNotFoundException {
+		if (params == null) {
+			sendError(replysender, 0, "<void>", "Got void message");
+			return;
+		}
+
+		if (data != null) {
+			sendError(replysender, 0, "<void>", "Got a diatribe piece of writing. Data not allowed!");
+			return;
+		}
+
+		if ("Get".equals(command)) {
+			final String uri = params.get("URI");
+			if (uri == null || uri.trim().length() == 0) {
+				sendError(replysender, 4, identifier, "missing freenet uri");
 				return;
 			}
-
-			if (data != null) {
-				sendError(replysender, 0, "<void>", "Got a diatribe piece of writing. Data not allowed!");
-				return;
-			}
-
-			String command = params.get("Command");
-
-			if (command == null || command.trim().length() == 0) {
-				sendError(replysender, 1, "", "Invalid Command name");
-				return;
-			}
-
-			
-			if ("Ping".equals(command)) {
+			try {
+				FreenetURI furi = KeyExplorerUtils.sanitizeURI(null, uri);
+				GetResult getResult = KeyExplorerUtils.simpleGet(pluginContext.pluginRespirator, furi);
 				SimpleFieldSet sfs = new SimpleFieldSet(true);
-				sfs.put("Pong", System.currentTimeMillis());
-				replysender.send(sfs);
+				sfs.putSingle("Identifier", identifier);
+				sfs.put("IsMetadata", getResult.isMetaData());
+				sfs.putSingle("Status", "DataFound");
+				replysender.send(sfs, getResult.getData());
+				return;
+			} catch (MalformedURLException e) {
+				sendError(replysender, 5, identifier, "Malformed freenet uri: " + e.getMessage());
+				return;
+			} catch (FetchException e) {
+				sendError(replysender, 6, identifier, "Get failed: " + e.toString());
 				return;
 			}
+		}
 
-			final String identifier = params.get("Identifier");
-			if (identifier == null || identifier.trim().length() == 0) {
-				sendError(replysender, 3, "<missing>", "Missing identifier");
+		if ("ListSiteManifest".equals(command)) {
+			final String uri = params.get("URI");
+			if (uri == null || uri.trim().length() == 0) {
+				sendError(replysender, 4, identifier, "missing freenet uri");
 				return;
 			}
-
-			if ("Get".equals(command)) {
-
-				final String uri = params.get("URI");
-				if (uri == null || uri.trim().length() == 0) {
-					sendError(replysender, 4, identifier, "missing freenet uri");
-					return;
-				}
-
-				try {
-					FreenetURI furi = KeyExplorerUtils.sanitizeURI(null, uri);
-					GetResult getResult = KeyExplorerUtils.simpleGet(pluginContext.pluginRespirator, furi);
-					SimpleFieldSet sfs = new SimpleFieldSet(true);
-					sfs.putSingle("Identifier", identifier);
-					sfs.put("IsMetadata", getResult.isMetaData());
-					sfs.putSingle("Status", "DataFound");
-					replysender.send(sfs, getResult.getData());
-					return;
-				} catch (MalformedURLException e) {
-					sendError(replysender, 5, identifier, "Malformed freenet uri: " + e.getMessage());
-					return;
-				} catch (FetchException e) {
-					sendError(replysender, 6, identifier, "Get failed: " + e.toString());
-					return;
-				}
+			try {
+				FreenetURI furi = new FreenetURI(uri);
+				GetResult getResult = KeyExplorerUtils.simpleGet(pluginContext.pluginRespirator, furi);
+				SimpleFieldSet sfs = new SimpleFieldSet(true);
+				sfs.putSingle("Identifier", identifier);
+				sfs.put("IsMetadata", getResult.isMetaData());
+				sfs.putSingle("Status", "DataFound");
+				replysender.send(sfs, getResult.getData());
+				return;
+			} catch (MalformedURLException e) {
+				sendError(replysender, 5, identifier, "Malformed freenet uri: " + e.getMessage());
+				return;
+			} catch (FetchException e) {
+				sendError(replysender, 6, identifier, "Get failed: " + e.toString());
+				return;
 			}
-
-			if ("ListSiteManifest".equals(command)) {
-
-				final String uri = params.get("URI");
-				if (uri == null || uri.trim().length() == 0) {
-					sendError(replysender, 4, identifier, "missing freenet uri");
-					return;
-				}
-
-				try {
-					FreenetURI furi = new FreenetURI(uri);
-					GetResult getResult = KeyExplorerUtils.simpleGet(pluginContext.pluginRespirator, furi);
-					SimpleFieldSet sfs = new SimpleFieldSet(true);
-					sfs.putSingle("Identifier", identifier);
-					sfs.put("IsMetadata", getResult.isMetaData());
-					sfs.putSingle("Status", "DataFound");
-					replysender.send(sfs, getResult.getData());
-					return;
-				} catch (MalformedURLException e) {
-					sendError(replysender, 5, identifier, "Malformed freenet uri: " + e.getMessage());
-					return;
-				} catch (FetchException e) {
-					sendError(replysender, 6, identifier, "Get failed: " + e.toString());
-					return;
-				}
-			}
-			sendError(replysender, 1, identifier, "Unknown command: " + command);
+		}
+		sendError(replysender, 1, identifier, "Unknown command: " + command);
 	}
 
 	public void kill() {
-		// TODO Auto-generated method stub
-		
 	}
-
-
 }
