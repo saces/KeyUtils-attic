@@ -10,6 +10,7 @@ import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
 import freenet.support.plugins.helpers1.AbstractFCPHandler;
 import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.URISanitizer;
 
 public class FCPHandler extends AbstractFCPHandler {
 
@@ -40,7 +41,7 @@ public class FCPHandler extends AbstractFCPHandler {
 				return;
 			}
 			try {
-				FreenetURI furi = KeyExplorerUtils.sanitizeURI(null, uri);
+				FreenetURI furi = URISanitizer.sanitizeURI(uri, URISanitizer.Options.NOMETASTRINGS, URISanitizer.Options.SSKFORUSK);
 				GetResult getResult = KeyExplorerUtils.simpleGet(pluginContext.pluginRespirator, furi);
 				SimpleFieldSet sfs = new SimpleFieldSet(true);
 				sfs.putSingle("Identifier", identifier);

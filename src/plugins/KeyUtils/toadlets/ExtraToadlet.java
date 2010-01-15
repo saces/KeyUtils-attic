@@ -296,7 +296,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		HTMLNode composeBox = createComposeBox(pluginContext, errors);
 
 		if (errors.size() > 0) {
-			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors, path(), null, null));
+			contentNode.addChild(createErrorBox(errors, path(), null, null));
 			errors.clear();
 		}
 

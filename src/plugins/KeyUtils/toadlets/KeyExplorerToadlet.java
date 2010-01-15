@@ -32,6 +32,7 @@ import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.URISanitizer;
 import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
 /**
@@ -147,7 +148,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 
 		try {
 			if (key != null && (key.trim().length() > 0)) {
-				furi = KeyExplorerUtils.sanitizeURI(errors, key);
+				furi = URISanitizer.sanitizeURI(errors, key, false, URISanitizer.Options.NOMETASTRINGS, URISanitizer.Options.SSKFORUSK);
 				retryUri = furi;
 				if (ml) { // multilevel is requestet
 					Metadata tempMD = KeyExplorerUtils.simpleManifestGet(pluginContext.pluginRespirator, furi);
@@ -179,7 +180,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)), hexWidth, automf, deep, errors);
 
 		if (errors.size() > 0) {
-			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors, extraParams, retryUri, null));
+			contentNode.addChild(createErrorBox(errors, extraParams, retryUri, null));
 			errors.clear();
 		}
 
@@ -316,7 +317,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 				}
 			}
 			if (errors.size() > 0)
-				contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors));
+				contentNode.addChild(createErrorBox(errors));
 		}
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}

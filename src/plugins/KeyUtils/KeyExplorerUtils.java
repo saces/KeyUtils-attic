@@ -249,40 +249,6 @@ public class KeyExplorerUtils {
 		throw new FetchException(200, "impossible? no metadata in archive ");
 	}
 
-	public static FreenetURI sanitizeURI(List<String> errors, String key) throws MalformedURLException {
-		if (key == null) throw new NullPointerException();
-		FreenetURI uri = new FreenetURI(key);
-		return sanitizeURI(errors, uri);
-	}
-
-	public static FreenetURI sanitizeURI(List<String> errors, FreenetURI key) throws MalformedURLException {
-		if (key == null) throw new NullPointerException();
-
-		FreenetURI tempURI = key;
-
-		//get rid of metas, useles
-		if (tempURI.hasMetaStrings()) {
-			if (errors != null) {
-				tempURI = tempURI.setMetaString(null);
-				errors.add("URI did contain meta strings, removed it for you");
-			} else {
-				throw new MalformedURLException("URIs with meta strings not supported");
-			}
-		}
-
-		// turn USK into SSK
-		if (tempURI.isUSK()) {
-			if (errors != null) {
-				tempURI = tempURI.sskForUSK();
-				errors.add("URI was an USK, converted it to SSK for you");
-			} else {
-				throw new MalformedURLException("USK not supported, use underlying SSK instead.");
-			}
-		}
-
-		return tempURI;
-	}
-
 	public static HashMap<String, Object> parseMetadata(Metadata oldMetadata, FreenetURI oldUri) throws MalformedURLException {
 		return parseMetadata(oldMetadata.getDocuments(), oldUri, "");
 	}
@@ -318,7 +284,8 @@ public class KeyExplorerUtils {
 			return null;
 		}
 		try {
-			FreenetURI furi = sanitizeURI(errors, key);
+			//FreenetURI furi = sanitizeURI(errors, key);
+			FreenetURI furi = new FreenetURI(key);
 			GetResult getresult = simpleGet(pluginRespirator, furi);
 			if (getresult.isMetaData()) {
 				return unrollMetadata(pluginRespirator, errors, Metadata.construct(getresult.getData()));

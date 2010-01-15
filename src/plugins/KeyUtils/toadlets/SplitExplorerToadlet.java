@@ -197,7 +197,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)), level);
 
 		if (errors.size() > 0) {
-			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors, path(), retryUri, null));
+			contentNode.addChild(createErrorBox(errors, path(), retryUri, null));
 			errors.clear();
 		}
 
@@ -232,7 +232,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)), level);
 
 		if (errors.size() > 0) {
-			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors, path(), retryUri, null));
+			contentNode.addChild(createErrorBox(errors, path(), retryUri, null));
 			contentNode.addChild(uriBox);
 			writeHTMLReply(ctx, 200, "OK", outer.generate());
 			return;

@@ -27,6 +27,7 @@ import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
 import freenet.support.plugins.helpers1.InvisibleWebInterfaceToadlet;
 import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.URISanitizer;
 
 /**
  * @author saces
@@ -85,7 +86,7 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
-		contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors, path(), null, null));
+		contentNode.addChild(createErrorBox(errors, path(), null, null));
 
 		writeHTMLReply(ctx, 501, "OK", outer.generate());
 	}
@@ -100,7 +101,7 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 			return null;
 		}
 		try {
-			FreenetURI furi = KeyExplorerUtils.sanitizeURI(errors, key);
+			FreenetURI furi = URISanitizer.sanitizeURI(errors, key, false, URISanitizer.Options.NOMETASTRINGS, URISanitizer.Options.SSKFORUSK);
 			GetResult getresult = KeyExplorerUtils.simpleGet(pluginContext.pluginRespirator, furi);
 			if (getresult.isMetaData()) {
 				return KeyExplorerUtils.unrollMetadata(pluginContext.pluginRespirator, errors, Metadata.construct(getresult.getData()));

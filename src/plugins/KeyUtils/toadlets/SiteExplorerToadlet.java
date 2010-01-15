@@ -27,6 +27,7 @@ import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
 import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.URISanitizer;
 import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
 /**
@@ -97,7 +98,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 
 		FreenetURI furi = null;
 		try {
-			furi = KeyExplorerUtils.sanitizeURI(errors, key);
+			furi = URISanitizer.sanitizeURI(errors, key, false, URISanitizer.Options.NOMETASTRINGS, URISanitizer.Options.SSKFORUSK);
 			key = furi.toString(false, false);
 		} catch (MalformedURLException e) {
 			if (logDEBUG) Logger.debug(this, "debug", e);
@@ -174,7 +175,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 
 		try {
 			if (key != null && (key.trim().length() > 0)) {
-				furi = KeyExplorerUtils.sanitizeURI(errors, key);
+				furi = URISanitizer.sanitizeURI(errors, key, false, URISanitizer.Options.NOMETASTRINGS, URISanitizer.Options.SSKFORUSK);
 				retryUri = furi;
 			}
 		} catch (MalformedURLException e) {
@@ -184,7 +185,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)), deep, errors);
 
 		if (errors.size() > 0) {
-			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors, path(), retryUri, null));
+			contentNode.addChild(createErrorBox(errors, path(), retryUri, null));
 			errors.clear();
 		}
 
@@ -228,8 +229,8 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		FreenetURI furi = null;
 	
 		try {
-			furi = KeyExplorerUtils.sanitizeURI(errors, key);
-	
+			furi = URISanitizer.sanitizeURI(errors, key, false, URISanitizer.Options.NOMETASTRINGS, URISanitizer.Options.SSKFORUSK);
+			
 			if (zip)
 				metadata = KeyExplorerUtils.zipManifestGet(pluginContext.pluginRespirator, furi);
 			else if (tar)
@@ -254,7 +255,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		}
 	
 		if (errors.size() > 0) {
-			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors));
+			contentNode.addChild(createErrorBox(errors));
 			contentNode.addChild(createUriBox(pluginContext, ((furi==null)?"":furi.toString(false, false)), deep, errors));
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 			return;
@@ -284,7 +285,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	
 		parseMetadataItem(contentTable, "", metadata, "", furi.toString(false, false), errors, deep, 0, -1);
 		if (errors.size() > 0) {
-			contentNode.addChild(UIUtils.createErrorBox(pluginContext, errors));
+			contentNode.addChild(createErrorBox(errors));
 		}
 		contentNode.addChild(listInfobox.outer);
 
