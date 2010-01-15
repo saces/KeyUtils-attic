@@ -1,7 +1,7 @@
 /* This code is part of Freenet. It is distributed under the GNU General
  * Public License, version 2 (or at your option any later version). See
  * http://www.gnu.org/ for further details of the GPL. */
-package plugins.KeyExplorer.toadlets;
+package plugins.KeyUtils.toadlets;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -12,11 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import plugins.KeyExplorer.GetResult;
-import plugins.KeyExplorer.KeyExplorer;
-import plugins.KeyExplorer.KeyExplorerUtils;
-import plugins.fproxy.lib.PluginContext;
-import plugins.fproxy.lib.WebInterfaceToadlet;
+import plugins.KeyUtils.GetResult;
+import plugins.KeyUtils.KeyExplorerUtils;
+import plugins.KeyUtils.KeyUtilsPlugin;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
 import freenet.client.Metadata;
@@ -33,6 +31,8 @@ import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
+import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
 /**
  * @author saces
@@ -44,7 +44,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 	private static final String PARAM_HEXWIDTH = "hexwidth";
 
 	public KeyExplorerToadlet(PluginContext context) {
-		super(context, KeyExplorer.PLUGIN_URI, "");
+		super(context, KeyUtilsPlugin.PLUGIN_URI, "");
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
@@ -92,13 +92,13 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		if (Globals.MFTYPE_ZIP.equals(type)) {
-			throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
+			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
 		}
 		if (Globals.MFTYPE_TAR.equals(type)) {
-			throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + key + extraParams);
+			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + key + extraParams);
 		}
 		if (Globals.MFTYPE_SIMPLE.equals(type)) {
-			throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + key + extraParams);
+			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + key + extraParams);
 		}
 		makeMainPage(ctx, errors, key, hexWidth, automf, deep, ml);
 	}
@@ -197,15 +197,15 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 				if (md != null) {
 					if (automf && md.isArchiveManifest()) {
 						if (md.getArchiveType() == ARCHIVE_TYPE.TAR) {
-							throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + furi + extraParams);
+							throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + furi + extraParams);
 						} else if (md.getArchiveType() == ARCHIVE_TYPE.ZIP) {
-							throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + furi + extraParams);
+							throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + furi + extraParams);
 						} else {
 							errors.add("Unknown Archive Type: " + md.getArchiveType().name());
 						}
 					}
 					if (automf && md.isSimpleManifest()) {
-						throw new RedirectException(KeyExplorer.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams);
+						throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams);
 					}
 				}
 			}
@@ -280,19 +280,19 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					metaBox.addChild("br");
 
 					if (md.isSimpleManifest()) {
-						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams, "reopen as manifest"));
+						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams, "reopen as manifest"));
 						metaBox.addChild("br");
 					}
 					if (md.isArchiveManifest()) {
-						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/Site/?mftype=" + md.getArchiveType().name() + "manifest&key=" + furi + extraParams,
+						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=" + md.getArchiveType().name() + "manifest&key=" + furi + extraParams,
 								"reopen as manifest"));
 						metaBox.addChild("br");
 					}
 					if (md.isMultiLevelMetadata()) {
 						if (ml)
-							metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + furi + extraParams, "explore multilevel"));
+							metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?key=" + furi + extraParams, "explore multilevel"));
 						else
-							metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?ml=checked&key=" + furi + extraParams, "explore multilevel"));
+							metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?ml=checked&key=" + furi + extraParams, "explore multilevel"));
 						metaBox.addChild("br");
 					}
 
@@ -303,14 +303,14 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						metaBox.addChild("#", "\u00a0");
 						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + sfrUri, "open"));
 						metaBox.addChild("#", "\u00a0");
-						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + sfrUri + extraParams, "explore"));
+						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?key=" + sfrUri + extraParams, "explore"));
 					} else {
 						metaBox.addChild(new HTMLNode("a", "href", "/?key=" + furi, "reopen normal"));
 					}
 					metaBox.addChild("br");
 
 					if ((uri == null) && md.isSplitfile() ) {
-						metaBox.addChild(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
+						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
 						metaBox.addChild("br");
 					}
 				}

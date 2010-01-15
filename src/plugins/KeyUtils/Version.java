@@ -1,7 +1,7 @@
 /* This code is part of Freenet. It is distributed under the GNU General
  * Public License, version 2 (or at your option any later version). See
  * http://www.gnu.org/ for further details of the GPL. */
-package plugins.KeyExplorer;
+package plugins.KeyUtils;
 
 /**
  * @author saces
@@ -19,7 +19,7 @@ public class Version {
 	 * 
 	 * I have set this to 3000 to allow encoding marketing versions into real versions.
 	 * Long provides plenty of leeway! Toad. */
-	public static final long version = 5001;
+	public static final long version = 5002;
 
 	public static final String longVersionString = "0.5α " + gitRevision;
 

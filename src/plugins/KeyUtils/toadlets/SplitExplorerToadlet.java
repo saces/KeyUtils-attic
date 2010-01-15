@@ -1,7 +1,7 @@
 /* This code is part of Freenet. It is distributed under the GNU General
  * Public License, version 2 (or at your option any later version). See
  * http://www.gnu.org/ for further details of the GPL. */
-package plugins.KeyExplorer.toadlets;
+package plugins.KeyUtils.toadlets;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -9,11 +9,10 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
+import plugins.KeyUtils.KeyUtilsPlugin;
+
 import com.db4o.ObjectContainer;
 
-import plugins.KeyExplorer.KeyExplorer;
-import plugins.fproxy.lib.PluginContext;
-import plugins.fproxy.lib.WebInterfaceToadlet;
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
 import freenet.client.FetchWaiter;
@@ -34,6 +33,8 @@ import freenet.support.Fields;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
+import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
 /**
  * @author saces
@@ -108,7 +109,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	public SplitExplorerToadlet(PluginContext context) {
-		super(context, KeyExplorer.PLUGIN_URI, "Split");
+		super(context, KeyUtilsPlugin.PLUGIN_URI, "Split");
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -175,7 +176,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key, int level) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyExplorer.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -206,7 +207,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeSplitPage(ToadletContext ctx, List<String> errors, FreenetURI furi, int level) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyExplorer.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 

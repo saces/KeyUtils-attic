@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>KeyExplorer</name>
+	<name>KeyUtils</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -16,7 +16,7 @@
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/KeyExplorer build.xml [Builder].launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/KeyUtils build.xml [Builder].launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>

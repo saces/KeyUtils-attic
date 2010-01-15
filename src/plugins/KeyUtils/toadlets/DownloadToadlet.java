@@ -1,7 +1,7 @@
 /* This code is part of Freenet. It is distributed under the GNU General
  * Public License, version 2 (or at your option any later version). See
  * http://www.gnu.org/ for further details of the GPL. */
-package plugins.KeyExplorer.toadlets;
+package plugins.KeyUtils.toadlets;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -9,6 +9,9 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
+import plugins.KeyUtils.GetResult;
+import plugins.KeyUtils.KeyExplorerUtils;
+import plugins.KeyUtils.KeyUtilsPlugin;
 import freenet.client.DefaultMIMETypes;
 import freenet.client.FetchException;
 import freenet.client.Metadata;
@@ -22,11 +25,8 @@ import freenet.support.HTMLNode;
 import freenet.support.MultiValueTable;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.BucketTools;
-import plugins.KeyExplorer.GetResult;
-import plugins.KeyExplorer.KeyExplorer;
-import plugins.KeyExplorer.KeyExplorerUtils;
-import plugins.fproxy.lib.InvisibleWebInterfaceToadlet;
-import plugins.fproxy.lib.PluginContext;
+import freenet.support.plugins.helpers1.InvisibleWebInterfaceToadlet;
+import freenet.support.plugins.helpers1.PluginContext;
 
 /**
  * @author saces
@@ -35,7 +35,7 @@ import plugins.fproxy.lib.PluginContext;
 public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 
 	public DownloadToadlet(PluginContext context, KeyExplorerToadlet ket) {
-		super(context, KeyExplorer.PLUGIN_URI, "Download", ket);
+		super(context, KeyUtilsPlugin.PLUGIN_URI, "Download", ket);
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -81,7 +81,7 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 	}
 
 	private void makeErrorPage(ToadletContext ctx, List<String> errors) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyExplorer.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 

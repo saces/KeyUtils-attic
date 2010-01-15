@@ -1,7 +1,7 @@
 /* This code is part of Freenet. It is distributed under the GNU General
  * Public License, version 2 (or at your option any later version). See
  * http://www.gnu.org/ for further details of the GPL. */
-package plugins.KeyExplorer.toadlets;
+package plugins.KeyUtils.toadlets;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
+import plugins.KeyUtils.KeyUtilsPlugin;
 import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
@@ -20,9 +21,8 @@ import freenet.support.Base64;
 import freenet.support.HTMLNode;
 import freenet.support.HexUtil;
 import freenet.support.api.HTTPRequest;
-import plugins.KeyExplorer.KeyExplorer;
-import plugins.fproxy.lib.PluginContext;
-import plugins.fproxy.lib.WebInterfaceToadlet;
+import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
 /**
  * @author saces
@@ -42,7 +42,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 	private static final String FIELDNAME_SSK_PRIVATE = "ssk_private";
 
 	public ExtraToadlet(PluginContext context) {
-		super(context, KeyExplorer.PLUGIN_URI, "Extra");
+		super(context, KeyUtilsPlugin.PLUGIN_URI, "Extra");
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -279,7 +279,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 	}
 
 	private PageNode getPageNode(ToadletContext ctx) {
-		return pluginContext.pageMaker.getPageNode(KeyExplorer.PLUGIN_TITLE, ctx);
+		return pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key) throws ToadletContextClosedException, IOException {

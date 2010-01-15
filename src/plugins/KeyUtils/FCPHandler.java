@@ -1,9 +1,6 @@
-package plugins.KeyExplorer;
+package plugins.KeyUtils;
 
 import java.net.MalformedURLException;
-
-import plugins.fproxy.lib.AbstractFCPHandler;
-import plugins.fproxy.lib.PluginContext;
 
 import freenet.client.FetchException;
 import freenet.keys.FreenetURI;
@@ -11,6 +8,8 @@ import freenet.pluginmanager.PluginNotFoundException;
 import freenet.pluginmanager.PluginReplySender;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
+import freenet.support.plugins.helpers1.AbstractFCPHandler;
+import freenet.support.plugins.helpers1.PluginContext;
 
 public class FCPHandler extends AbstractFCPHandler {
 

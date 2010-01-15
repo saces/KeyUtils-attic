@@ -1,15 +1,13 @@
 /* This code is part of Freenet. It is distributed under the GNU General
  * Public License, version 2 (or at your option any later version). See
  * http://www.gnu.org/ for further details of the GPL. */
-package plugins.KeyExplorer;
+package plugins.KeyUtils;
 
-import plugins.KeyExplorer.toadlets.DownloadToadlet;
-import plugins.KeyExplorer.toadlets.ExtraToadlet;
-import plugins.KeyExplorer.toadlets.KeyExplorerToadlet;
-import plugins.KeyExplorer.toadlets.SiteExplorerToadlet;
-import plugins.KeyExplorer.toadlets.SplitExplorerToadlet;
-import plugins.fproxy.lib.PluginContext;
-import plugins.fproxy.lib.WebInterface;
+import plugins.KeyUtils.toadlets.DownloadToadlet;
+import plugins.KeyUtils.toadlets.ExtraToadlet;
+import plugins.KeyUtils.toadlets.KeyExplorerToadlet;
+import plugins.KeyUtils.toadlets.SiteExplorerToadlet;
+import plugins.KeyUtils.toadlets.SplitExplorerToadlet;
 import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.pluginmanager.FredPlugin;
 import freenet.pluginmanager.FredPluginFCP;
@@ -23,18 +21,20 @@ import freenet.pluginmanager.PluginRespirator;
 import freenet.support.Logger;
 import freenet.support.SimpleFieldSet;
 import freenet.support.api.Bucket;
+import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.WebInterface;
 
 /**
  * @author saces
  *
  */
-public class KeyExplorer implements FredPlugin, /*FredPluginHTTP,*/ FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
+public class KeyUtilsPlugin implements FredPlugin, /*FredPluginHTTP,*/ FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
 
 	private static volatile boolean logMINOR;
 	private static volatile boolean logDEBUG;
 
 	static {
-		Logger.registerClass(KeyExplorer.class);
+		Logger.registerClass(KeyUtilsPlugin.class);
 	}
 
 	public static final String PLUGIN_URI = "/KeyExplorer";

@@ -1,6 +1,6 @@
-package plugins.KeyExplorer;
+package plugins.KeyUtils;
 
-import plugins.fproxy.lib.AbstractFCPHandler.FCPException;
+import freenet.support.plugins.helpers1.AbstractFCPHandler.FCPException;
 
 /**
  * @author saces

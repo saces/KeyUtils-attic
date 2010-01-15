@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<!-- ant build file for Freenet -->
+<!-- ant build file for KeyUtils -->
 
-<project name="Freenet" default="dist" basedir=".">
+<project name="KeyUtils" default="dist" basedir=".">
 	<property name="freenet-cvs-snapshot.location" location="../fred/lib/freenet-cvs-snapshot.jar"/>
 	<property name="freenet-ext.location" location="../fred/lib/freenet-ext.jar"/>
 	<property name="svn.revision" value="@custom@"/>
@@ -12,10 +12,10 @@
 	<property name="dist" location="dist/"/>
 	<property name="src" location="src/"/>
 	<property name="junit.location" value="/usr/share/java/junit.jar"/>
-	<property name="version.src" value="plugins/KeyExplorer/Version.java" />
-	<property name="version.build" value="plugins/KeyExplorer/Version.class" />
+	<property name="version.src" value="plugins/KeyUtils/Version.java" />
+	<property name="version.build" value="plugins/KeyUtils/Version.class" />
 
-	<available file="src/plugins/KeyExplorer/Version.java" property="version.present"/>
+	<available file="src/plugins/KeyUtils/Version.java" property="version.present"/>
 	<available file="${junit.location}" property="junit.present"/>
 
 	<exec executable="git"
@@ -118,16 +118,16 @@
 	<!-- ================================================== -->
 	<target name="dist" depends="clean,compile,junit"
 		description="generate the distribution" >
-		<jar jarfile="${dist}/KeyExplorer.jar" duplicate="fail">
+		<jar jarfile="${dist}/KeyUtils.jar" duplicate="fail">
 			<manifest>
-				<attribute name="Plugin-Main-Class" value="plugins.KeyExplorer.KeyExplorer"/>
+				<attribute name="Plugin-Main-Class" value="plugins.KeyUtils.KeyUtilsPlugin"/>
 			</manifest>
 			<fileset dir="src/" casesensitive="no">
 				<include name="*.txt"/>
 			</fileset>
 			<fileset dir="${build}/"/>
 		</jar>
-		<zip destfile="${dist}/KeyExplorer-src.zip" filesonly="true" compress="true">
+		<zip destfile="${dist}/KeyUtils-src.zip" filesonly="true" compress="true">
 			<zipfileset dir="."
 				prefix = ""
 				excludes=".*"

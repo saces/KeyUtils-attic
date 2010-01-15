@@ -1,7 +1,7 @@
 /* This code is part of Freenet. It is distributed under the GNU General
  * Public License, version 2 (or at your option any later version). See
  * http://www.gnu.org/ for further details of the GPL. */
-package plugins.KeyExplorer.toadlets;
+package plugins.KeyUtils.toadlets;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -11,10 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import plugins.KeyExplorer.KeyExplorer;
-import plugins.KeyExplorer.KeyExplorerUtils;
-import plugins.fproxy.lib.PluginContext;
-import plugins.fproxy.lib.WebInterfaceToadlet;
+import plugins.KeyUtils.KeyExplorerUtils;
+import plugins.KeyUtils.KeyUtilsPlugin;
 import freenet.client.FetchException;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
@@ -28,6 +26,8 @@ import freenet.keys.FreenetURI;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
+import freenet.support.plugins.helpers1.PluginContext;
+import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
 /**
  * @author saces
@@ -42,7 +42,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	public SiteExplorerToadlet(PluginContext context) {
-		super(context, KeyExplorer.PLUGIN_URI, "Site");
+		super(context, KeyUtilsPlugin.PLUGIN_URI, "Site");
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -158,7 +158,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key, boolean deep, boolean ml) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyExplorer.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -344,7 +344,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
 			if (md.isSingleFileRedirect()) {
-				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
+				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
 			} else {
 				htmlTableRow.addChild(makeCell("Sorry, I won't deal with multilevel metadata here even though they are valid."));
 			}
@@ -357,7 +357,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
 			if (md.isSingleFileRedirect())
-				htmlTableRow.addChild(makeTargetCell(md, furi + fname, new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
+				htmlTableRow.addChild(makeTargetCell(md, furi + fname, new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
 			else
 				htmlTableRow.addChild(makeTargetCell(md, furi + fname));
 	
@@ -430,7 +430,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	
 			if (md.isSingleFileRedirect()) {
 				String containerTarget = md.getSingleTarget().toString(false, false);
-				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyExplorer.PLUGIN_URI + "/?mftype=" + md.getArchiveType().name() + "manifest&key=" + containerTarget, containerTarget)));
+				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?mftype=" + md.getArchiveType().name() + "manifest&key=" + containerTarget, containerTarget)));
 			} else {
 				htmlTableRow.addChild(makeEmptyCell());
 			}
@@ -604,7 +604,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		boolean isEmpty = true;
 		if (md != null && md.isSplitfile()) {
 			cell.addChild("#", "[");
-			cell.addChild("a", "href", KeyExplorer.PLUGIN_URI + "/Split/?key=" + uri, "show split");
+			cell.addChild("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Split/?key=" + uri, "show split");
 			cell.addChild("#", "]\u00a0");
 			isEmpty = false;
 		}

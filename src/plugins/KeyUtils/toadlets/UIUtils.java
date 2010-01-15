@@ -1,12 +1,11 @@
-package plugins.KeyExplorer.toadlets;
+package plugins.KeyUtils.toadlets;
 
 import java.util.List;
-
-import plugins.fproxy.lib.PluginContext;
 
 import freenet.clients.http.InfoboxNode;
 import freenet.keys.FreenetURI;
 import freenet.support.HTMLNode;
+import freenet.support.plugins.helpers1.PluginContext;
 
 public class UIUtils {
 
@@ -14,7 +13,7 @@ public class UIUtils {
 		return createErrorBox(pCtx, errors, null, null, null);
 	}
 
-	static HTMLNode createErrorBox(PluginContext pCtx, List<String> errors, String path, FreenetURI retryUri, String extraParams) {
+	public static HTMLNode createErrorBox(PluginContext pCtx, List<String> errors, String path, FreenetURI retryUri, String extraParams) {
 
 		InfoboxNode box = pCtx.pageMaker.getInfobox("infobox-alert", "ERROR");
 		HTMLNode errorBox = box.content;
