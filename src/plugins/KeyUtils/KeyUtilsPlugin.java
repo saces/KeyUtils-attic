@@ -28,7 +28,7 @@ import freenet.support.plugins.helpers1.WebInterface;
  * @author saces
  *
  */
-public class KeyUtilsPlugin implements FredPlugin, /*FredPluginHTTP,*/ FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
+public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP, FredPluginThreadless, FredPluginVersioned, FredPluginRealVersioned {
 
 	private static volatile boolean logMINOR;
 	private static volatile boolean logDEBUG;
@@ -37,9 +37,9 @@ public class KeyUtilsPlugin implements FredPlugin, /*FredPluginHTTP,*/ FredPlugi
 		Logger.registerClass(KeyUtilsPlugin.class);
 	}
 
-	public static final String PLUGIN_URI = "/KeyExplorer";
-	private static final String PLUGIN_CATEGORY = "Key Tools";
-	public static final String PLUGIN_TITLE = "KeyExplorer Plugin";
+	public static final String PLUGIN_URI = "/KeyUtils";
+	private static final String PLUGIN_CATEGORY = "Key Utils";
+	public static final String PLUGIN_TITLE = "Key Utilities Suite";
 
 	private WebInterface webInterface;
 	private PluginContext pluginContext;
@@ -56,7 +56,7 @@ public class KeyUtilsPlugin implements FredPlugin, /*FredPluginHTTP,*/ FredPlugi
 	public void runPlugin(PluginRespirator pr) {
 
 		if (logMINOR)
-			Logger.minor(this, "Initialising KeyExplorer.");
+			Logger.minor(this, "Initialising Key Utils.");
 
 		pluginContext = new PluginContext(pr);
 		webInterface = new WebInterface(pluginContext);
@@ -79,7 +79,7 @@ public class KeyUtilsPlugin implements FredPlugin, /*FredPluginHTTP,*/ FredPlugi
 		webInterface.registerInvisible(dlToadlet);
 
 		if (logMINOR)
-			Logger.minor(this, "Initialising KeyExplorer done.");
+			Logger.minor(this, "Initialising Key Utils done.");
 
 	}
 
