@@ -347,7 +347,30 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			if (md.isSingleFileRedirect()) {
 				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
 			} else {
-				htmlTableRow.addChild(makeCell("Sorry, I won't deal with multilevel metadata here even though they are valid."));
+				htmlTableRow.addChild(makeEmptyCell());
+			}
+			if (deep) {
+				Metadata subMd;
+				Exception err;
+				try {
+					if (md.isSingleFileRedirect()) {
+						FreenetURI mlUri = md.getSingleTarget();
+						subMd = KeyExplorerUtils.simpleManifestGet(pluginContext.pluginRespirator, mlUri);
+					} else {
+						subMd = KeyExplorerUtils.splitManifestGet(pluginContext.pluginRespirator, md);
+					}
+					parseMetadataItem(htmlTable, "", subMd, prefix+name, furi, errors, deep, nestedLevel+1, -1);
+					return;
+				} catch (MetadataParseException e) {
+					err = e;
+				} catch (IOException e) {
+					err = e;
+				} catch (FetchException e) {
+					err = e;
+				} catch (KeyListenerConstructionException e) {
+					err = e;
+				}
+				htmlTable.addChild(makeErrorRow(err));
 			}
 			return;
 		}
