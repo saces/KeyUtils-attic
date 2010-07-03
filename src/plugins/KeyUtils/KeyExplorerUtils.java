@@ -27,6 +27,7 @@ import freenet.client.FetchWaiter;
 import freenet.client.HighLevelSimpleClient;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
+import freenet.client.InsertContext.CompatibilityMode;
 import freenet.client.async.ClientContext;
 import freenet.client.async.ClientGetState;
 import freenet.client.async.ClientGetter;
@@ -35,6 +36,7 @@ import freenet.client.async.GetCompletionCallback;
 import freenet.client.async.KeyListenerConstructionException;
 import freenet.client.async.SnoopBucket;
 import freenet.client.async.SplitFileFetcher;
+import freenet.crypt.HashResult;
 import freenet.keys.FreenetURI;
 import freenet.node.RequestClient;
 import freenet.node.RequestStarter;
@@ -139,6 +141,34 @@ public class KeyExplorerUtils {
 				// TODO Auto-generated method stub
 
 			}
+
+			public void onExpectedTopSize(long size, long compressed,
+					int blocksReq, int blocksTotal, ObjectContainer container,
+					ClientContext context) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void onHashes(HashResult[] hashes,
+					ObjectContainer container, ClientContext context) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void onSplitfileCompatibilityMode(long min, long max,
+					ObjectContainer container, ClientContext context) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void onSplitfileCompatibilityMode(CompatibilityMode min,
+					CompatibilityMode max, byte[] customSplitfileKey,
+					boolean compressed, boolean bottomLayer,
+					boolean definitiveAnyway, ObjectContainer container,
+					ClientContext context) {
+				// TODO Auto-generated method stub
+				
+			}
 		};
 
 		List<COMPRESSOR_TYPE> decompressors = new LinkedList<COMPRESSOR_TYPE>();
@@ -155,7 +185,7 @@ public class KeyExplorerUtils {
 		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, null, (RequestClient) pr.getHLSimpleClient());
 		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, decompressors, clientMetadata, actx, recursionLevel, returnBucket, token,
-				null, pr.getNode().clientCore.clientContext);
+				false, (short) 0, null, pr.getNode().clientCore.clientContext);
 
 		// VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri,
 		// (RequestClient) pr.getHLSimpleClient());
