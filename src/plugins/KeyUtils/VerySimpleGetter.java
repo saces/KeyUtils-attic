@@ -10,7 +10,6 @@ import freenet.client.async.ClientGetState;
 import freenet.client.async.ClientRequester;
 import freenet.keys.FreenetURI;
 import freenet.node.RequestClient;
-import freenet.support.LogThresholdCallback;
 import freenet.support.Logger;
 
 /**
@@ -22,13 +21,7 @@ public class VerySimpleGetter extends ClientRequester {
 	private static volatile boolean logDEBUG;
 	
 	static {
-		Logger.registerLogThresholdCallback(new LogThresholdCallback() {
-			
-			@Override
-			public void shouldUpdate() {
-				logDEBUG = Logger.shouldLog(Logger.DEBUG, this);
-			}
-		});
+		Logger.registerClass(VerySimpleGetter.class);
 	}
 
 	private FreenetURI uri;
