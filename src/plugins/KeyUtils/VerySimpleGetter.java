@@ -17,9 +17,9 @@ import freenet.support.Logger;
  *
  */
 public class VerySimpleGetter extends ClientRequester {
-	
+
 	private static volatile boolean logDEBUG;
-	
+
 	static {
 		Logger.registerClass(VerySimpleGetter.class);
 	}
