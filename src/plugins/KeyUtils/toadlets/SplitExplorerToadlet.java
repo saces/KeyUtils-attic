@@ -303,7 +303,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			HTMLNode segmentBox = segmentInfo.outer;
 			HTMLNode segmentContent = segmentInfo.content;
 			segmentContent.addChild("%", "<div lang=\"en\" style=\"font-family: monospace;\">\n");
-			for (int i = 0; i < keys.length; i++) {
+			for (int i = 0; i < blockspersegment; i++) {
 				if (i + offset >= keys.length)
 					break;
 				FreenetURI key = keys[i+offset].getURI();
