@@ -180,7 +180,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode uriBox = createUriBox(pluginContext, ((furi == null) ? null : furi.toString(false, false)), hexWidth, automf, deep, errors);
 
 		if (errors.size() > 0) {
-			contentNode.addChild(createErrorBox(errors, path(), retryUri, null));
+			contentNode.addChild(createErrorBox(errors, path(), retryUri, extraParams));
 			errors.clear();
 		}
 
