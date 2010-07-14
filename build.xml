@@ -1,72 +1,21 @@
-<?xml version="1.0"?>
-<!-- ant build file for KeyUtils -->
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="KeyUtils" default="bundle" basedir=".">
 
-<project name="KeyUtils" default="dist" basedir=".">
-	<property name="freenet-cvs-snapshot.location" location="../fred/lib/freenet-cvs-snapshot.jar"/>
-	<property name="freenet-ext.location" location="../fred/lib/freenet-ext.jar"/>
-	<property name="svn.revision" value="@custom@"/>
+	<property name="freenet-cvs-snapshot.location" location="../fred/lib/FreenetService.jar"/>
+
 	<property name="source-version" value="1.5"/>
 	<property name="target-version" value="1.5"/>
+
 	<property name="build" location="build/"/>
-	<property name="build-test" location="build-test/"/>
 	<property name="dist" location="dist/"/>
 	<property name="src" location="src/"/>
-	<property name="junit.location" value="/usr/share/java/junit.jar"/>
-	<property name="version.src" value="plugins/KeyUtils/Version.java" />
-	<property name="version.build" value="plugins/KeyUtils/Version.class" />
-
-	<available file="src/plugins/KeyUtils/Version.java" property="version.present"/>
-	<available file="${junit.location}" property="junit.present"/>
-
-	<exec executable="git"
-		failifexecutionfails="false"
-		errorProperty="git.errror"
-		outputproperty="git.describe"
-		resultproperty="git.result">
-		<arg value="describe" />
-		<arg value="--always" />
-		<arg value="--abbrev=4" />
-	</exec>
-
-	<condition property="git.revision" value="${git.describe}" else="@unknown@">
-		<and>
-			<equals arg1="${git.result}" arg2="0" />
-			<isset property="git.describe" />
-		</and>
-	</condition>
 
 	<target name="mkdir">
 		<mkdir dir="${build}"/>
-		<mkdir dir="${build-test}"/>
 		<mkdir dir="${dist}"/>
-		<echo message="Using ${freenet-cvs-snapshot.location} as freenet-cvs-snapshot.jar"/>
-		<echo message="Using ${freenet-ext.location} as freenet-ext.jar"/>
 	</target>
 
-	<!-- ================================================== -->
 	<target name="compile" depends="mkdir" >
-		<!-- Create the time stamp -->
-		<tstamp/>
-		<!-- Create the build directory structure used by compile -->
-
-		<!-- Create the Version file with patched revision number in ${build} -->
-		<copy file="${src}/${version.src}" tofile="${build}/${version.src}" overwrite="true" />
-		<delete file="${build}/${version.build}" quiet="true" />
-		<replace file="${build}/${version.src}">
-			<replacefilter token="@custom@" value="${git.revision}"/>
-		</replace>
-		<echo message="Updated build version to ${git.revision} in ${build}/${version.src}"/>
-
-		<!-- Force compile of Version.java in case compile of ${src} didn't trigger it -->
-		<javac srcdir="${build}" destdir="${build}" debug="on" optimize="on" source="${source-version}" target="${target-version}">
-			<classpath>
-				<pathelement location="${freenet-ext.location}"/>
-				<pathelement location="${freenet-cvs-snapshot.location}"/>
-			</classpath>
-			<include name="${version.src}"/>
-		</javac>
-
-		<!-- FIXME: remove the debug and replace with optimize -->
 		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="${source-version}" target="${target-version}">
 			<classpath>
 				<pathelement location="${freenet-ext.location}"/>
@@ -74,71 +23,33 @@
 			</classpath>
 			<include name="**/*.java"/>
 			<exclude name="**/*Test.java"/>
-			<exclude name="${version.src}"/>
+			<exclude name="saces/KeyUtils/**/*.java"/>
 		</javac>
 	</target>
 
-	<!-- ================================================== -->
-
-	<target name="unit-build" depends="compile" if="junit.present" unless="skip_tests">
-		<javac srcdir="src/" destdir="${build-test}" debug="on" optimize="on" source="1.5">
-			<classpath>
-				<pathelement path="${build}"/>
-				<pathelement location="${freenet-ext.location}"/>
-				<pathelement location="${freenet-cvs-snapshot.location}"/>
-				<pathelement location="${junit.location}"/>
-			</classpath>
-			<compilerarg value="-Xlint"/>
-			<include name="**/*Test.java"/>
-		</javac>
-	</target>
-
-	<target name="junit" depends="unit-build" if="junit.present" unless="skip_tests">
-		<junit printsummary="yes" fork="yes" haltonfailure="yes">
-			<classpath>
-				<pathelement path="${build}"/>
-				<pathelement path="${build-test}"/>
-				<pathelement location="${freenet-ext.location}"/>
-				<pathelement location="${freenet-cvs-snapshot.location}"/>
-				<pathelement location="${junit.location}"/>
-			</classpath>
-
-			<formatter type="plain" usefile="false"/>
-
-			<batchtest fork="yes">
-				<fileset dir="${build-test}">
-					<include name="**/*Test.class"/>
-				</fileset>
-			</batchtest>
-			<sysproperty key="benchmark" value="${benchmark}" />
-			<sysproperty key="extensiveTesting" value="${extensiveTesting}" />
-		</junit>
-	</target>
-
-	<!-- ================================================== -->
-	<target name="dist" depends="clean,compile,junit"
-		description="generate the distribution" >
-		<jar jarfile="${dist}/KeyUtils.jar" duplicate="fail">
+	<target name="bundle" depends="compile" description="Package the application">
+		<jar jarfile="${dist}/KeyUtils.jar" compress="true" index="false" basedir="${build}" excludes="**/package.html"
+				filesetmanifest="skip">
 			<manifest>
-				<attribute name="Plugin-Main-Class" value="plugins.KeyUtils.KeyUtilsPlugin"/>
+				<!-- attribute name="Main-Class" value="ch.ethz.iks.concierge.framework.Framework" / -->
+				<attribute name="Bundle-ManifestVersion" value="2" />
+				<attribute name="Bundle-SymbolicName" value="KeyUtils" />
+				<attribute name="Bundle-Version" value="1" />
+				<attribute name="Bundle-Activator" value="saces.KeyUtils.Activator" />
+				<attribute name="Import-Package" value="org.osgi.framework;version=1.3.0,org.osgi.service.http" />
 			</manifest>
-			<fileset dir="src/" casesensitive="no">
-				<include name="*.txt"/>
-			</fileset>
-			<fileset dir="${build}/"/>
+			<!--
+			<zipfileset src="war/WEB-INF/lib/gwt-servlet.jar" />
+			<zipfileset dir="war" prefix="web" includes="*.html *.css" />
+			<zipfileset dir="war/keyutils" prefix="web/keyutils" includes="**" excludes="*.rpc" />
+			<zipfileset dir="war/keyutils" prefix="" includes="*.rpc" />
+			-->
 		</jar>
-		<zip destfile="${dist}/KeyUtils-src.zip" filesonly="true" compress="true">
-			<zipfileset dir="."
-				prefix = ""
-				excludes=".*"
-				includes="src/**/* build.xml" />
-		</zip>
 	</target>
 
-	<!-- ================================================== -->
-	<target name="clean" description="Delete class files and docs dir.">
-		<delete dir="${build}"/>
-		<delete dir="${build-test}"/>
-		<delete dir="${dist}"/>
+	<target name="clean" description="Clean the output directory">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
 	</target>
+
 </project>
