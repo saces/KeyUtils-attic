@@ -13,8 +13,8 @@ import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.tools.tar.TarEntry;
-import org.apache.tools.tar.TarInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
 import com.db4o.ObjectContainer;
 
@@ -254,11 +254,11 @@ public class KeyExplorerUtils {
 	}
 
 	public static Metadata internalTarManifestGet(Bucket data, String metaName) throws IOException, MetadataParseException, FetchException {
-		TarInputStream zis = new TarInputStream(data.getInputStream());
-		TarEntry entry;
+		TarArchiveInputStream zis = new TarArchiveInputStream(data.getInputStream());
+		TarArchiveEntry entry;
 		ByteArrayOutputStream bos;
 		while (true) {
-			entry = zis.getNextEntry();
+			entry = zis.getNextTarEntry();
 			if (entry == null)
 				break;
 			if (entry.isDirectory())
