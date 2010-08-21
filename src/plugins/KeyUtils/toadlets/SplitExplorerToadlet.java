@@ -241,7 +241,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		HTMLNode splitBox;
 		if (md.getParsedVersion() == 0) {
-			splitBox = createSplitBoxV0(pluginContext, md, furi.toString(false, false));
+			splitBox = createSplitBoxV1(pluginContext, md, furi.toString(false, false));
 		} else {
 			// version 1+
 			splitBox = createSplitBoxV1(pluginContext, md, furi.toString(false, false));
