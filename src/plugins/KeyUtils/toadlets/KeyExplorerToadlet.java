@@ -224,6 +224,8 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 				if (md != null) {
 					HTMLNode metaBox = pluginContext.pageMaker.getInfobox("#", "Decomposed metadata", contentNode);
 
+					metaBox.addChild("#", "Metadata version "+Short.toString(md.getParsedVersion()));
+					metaBox.addChild("br");
 					metaBox.addChild("#", "Document type:\u00a0");
 					if (md.isSimpleRedirect()) {
 						metaBox.addChild("#", "SimpleRedirect");
