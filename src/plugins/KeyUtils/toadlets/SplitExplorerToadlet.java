@@ -330,6 +330,15 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		InfoboxNode iBox = pCtx.pageMaker.getInfobox("Split file info");
 		HTMLNode infoBox = iBox.outer;
 		HTMLNode infoContent = iBox.content;
+
+		if (!md.isSplitfile()) {
+			infoContent.addChild("#", "Error: Not a splitfile manifest?!@#?. may a bug, please report.");
+			return browseBox;
+		}
+
+		infoContent.addChild("#", "Metadata version "+Short.toString(md.getParsedVersion()));
+		infoContent.addChild("br");
+
 		infoContent.addChild("#", "Split file type: ");
 
 		short type = md.getSplitfileType();
@@ -342,14 +351,23 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		infoContent.addChild("#", "\u00a0("+type+")");
 		infoContent.addChild("br");
 
+		infoContent.addChild("#", "Compatiblity: "+md.getTopCompatibilityMode().name()+" (min: "+md.getMinCompatMode().name() +" max: "+md.getMaxCompatMode()+")");
+		infoContent.addChild("br");
 		browseContent.addChild(infoBox);
-		
+
 		SplitFileSegmentKeys[] segments;
 		try {
 			segments = md .grabSegmentKeys(null);
 		} catch (FetchException e) {
 			Logger.error(this, "Internal failures: "+e.getMessage(), e);
 			infoContent.addChild("#", "Error: Internal failure while decoding data. Try again (refresh the page).");
+			return browseBox;
+		}
+
+		if (segments == null) {
+			infoContent.addChild("br");
+			Logger.error(this, "Segements is null!?", new Error("Debug"));
+			infoContent.addChild("#", "Error: Segements is null!? Should not happen!?!");
 			return browseBox;
 		}
 
