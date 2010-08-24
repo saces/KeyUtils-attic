@@ -139,6 +139,10 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 					break;
 				case 2:
 					resultContent.addChild("#", " (LZMA)");
+					break;
+				case 3:
+					resultContent.addChild("#", " (LZMA_NEW)");
+					break;
 				}
 			} else {
 				resultContent.addChild("#", "SSK");
@@ -396,6 +400,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		compressselect.addChild("option", "value", "0", "GZip (0)");
 		compressselect.addChild("option", "value", "1", "BZip2 (1)");
 		compressselect.addChild("option", "value", "2", "LZMA (2)");
+		compressselect.addChild("option", "value", "3", "LZMA_NEW (3)");
 
 		cell.addChild(compressselect);
 
