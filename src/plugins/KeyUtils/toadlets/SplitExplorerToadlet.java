@@ -56,7 +56,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
 			if (meta.isSplitfile()) {
-				firstSplit = (Metadata) meta.clone();
+				firstSplit = meta;
 				return true;
 			}
 			return false;
@@ -77,7 +77,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
 			if (meta.isSplitfile()) {
-				lastSplit = meta;
+				lastSplit = (Metadata) meta.clone();
 			}
 			return false;
 		}
