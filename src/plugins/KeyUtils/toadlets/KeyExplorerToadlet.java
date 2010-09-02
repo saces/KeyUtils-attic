@@ -246,6 +246,12 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					}
 					metaBox.addChild("br");
 
+					final String MIMEType = md.getMIMEType();
+					if (MIMEType != null) {
+						metaBox.addChild("#", "MIME Type: " + MIMEType);
+						metaBox.addChild("br");
+					}
+
 					if (md.haveFlags()) {
 						metaBox.addChild("#", "Flags:\u00a0");
 						boolean isFirst = true;
