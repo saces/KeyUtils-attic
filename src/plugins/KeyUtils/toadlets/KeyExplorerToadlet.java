@@ -198,15 +198,18 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 				if (md != null) {
 					if (automf && md.isArchiveManifest()) {
 						if (md.getArchiveType() == ARCHIVE_TYPE.TAR) {
-							throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + furi + extraParams);
+							writeTemporaryRedirect(ctx, "", KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + furi + extraParams);
+							return;
 						} else if (md.getArchiveType() == ARCHIVE_TYPE.ZIP) {
-							throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + furi + extraParams);
+							writeTemporaryRedirect(ctx, "", KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + furi + extraParams);
+							return;
 						} else {
 							errors.add("Unknown Archive Type: " + md.getArchiveType().name());
 						}
 					}
 					if (automf && md.isSimpleManifest()) {
-						throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams);
+						writeTemporaryRedirect(ctx, "", KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams);
+						return;
 					}
 				}
 			}
