@@ -322,7 +322,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					metaBox.addChild("br");
 
 					if ((uri == null) && md.isSplitfile() ) {
-						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
+						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Download?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
 						metaBox.addChild("br");
 					}
 				}
