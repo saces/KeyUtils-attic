@@ -124,6 +124,10 @@ public class KeyExplorerUtils {
 	public static FetchResult splitGet(PluginRespirator pr, Metadata metadata) throws FetchException, MetadataParseException,
 			KeyListenerConstructionException {
 
+		if (!metadata.isSplitfile()) {
+			throw new MetadataParseException("uri did not point to splitfile");
+		}
+
 		final FetchWaiter fw = new FetchWaiter();
 
 		final FetchContext ctx = pr.getHLSimpleClient().getFetchContext();
