@@ -26,7 +26,9 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.RedirectException;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.crypt.HashResult;
 import freenet.keys.FreenetURI;
+import freenet.support.HexUtil;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
@@ -283,9 +285,25 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 
 					metaBox.addChild("br");
 
+					final HashResult[] hashes = md.getHashes();
+					if (hashes != null && hashes.length > 0) {
+						metaBox.addChild("#", "Hashes:");
+						metaBox.addChild("br");
+						for (final HashResult hash : hashes) {
+							metaBox.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + HexUtil.bytesToHex(hash.result));
+							metaBox.addChild("br");
+						}
+					}
+
 					if (md.isSplitfile()) {
 						metaBox.addChild("#", "Splitfile size\u00a0=\u00a0" + md.dataLength() + " bytes.");
 						metaBox.addChild("br");
+
+						byte[] splitfileCryptoKey = md.getCustomSplitfileKey();
+						if (splitfileCryptoKey != null) {
+							metaBox.addChild("#", "Splitfile CryptoKey\u00a0=\u00a0" + HexUtil.bytesToHex(splitfileCryptoKey));
+							metaBox.addChild("br");
+						}
 					}
 
 					metaBox.addChild("#", "Options:");
