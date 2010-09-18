@@ -25,12 +25,14 @@ import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.crypt.HashResult;
 import freenet.keys.ClientCHK;
 import freenet.keys.FreenetURI;
 import freenet.node.RequestClient;
 import freenet.node.RequestStarter;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.Fields;
+import freenet.support.HexUtil;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
@@ -353,6 +355,51 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		infoContent.addChild("#", "Compatiblity: "+md.getTopCompatibilityMode().name()+" (min: "+md.getMinCompatMode().name() +" max: "+md.getMaxCompatMode()+")");
 		infoContent.addChild("br");
+
+		// FIXME BEGIN refactor: duplicated with KeyExplorerToadlet
+		byte[] splitfileCryptoKey = md.getCustomSplitfileKey();
+		if (splitfileCryptoKey != null) {
+			infoContent.addChild("#", "Splitfile CryptoKey: " + HexUtil.bytesToHex(splitfileCryptoKey));
+			infoContent.addChild("br");
+		}
+
+		if (md.hasTopData()) {
+			infoContent.addChild("#", "Top Block Data:");
+			infoContent.addChild("br");
+			infoContent.addChild("#", "\u00a0\u00a0DontCompress: " + Boolean.toString(md.topDontCompress));
+			infoContent.addChild("br");
+			infoContent.addChild("#", "\u00a0\u00a0Compressed size: " + Long.toString(md.topCompressedSize) + " bytes.");
+			infoContent.addChild("br");
+			infoContent.addChild("#", "\u00a0\u00a0Decompressed Size: " + Long.toString(md.topSize) + " bytes.");
+			infoContent.addChild("br");
+			infoContent.addChild("#", "\u00a0\u00a0Blocks: " + Integer.toString(md.topBlocksRequired) + " required, " + Integer.toString(md.topBlocksTotal) + " total.");
+			infoContent.addChild("br");
+		}
+
+		final HashResult[] hashes = md.getHashes();
+		if (hashes != null && hashes.length > 0) {
+			infoContent.addChild("#", "Hashes:");
+			infoContent.addChild("br");
+			for (final HashResult hash : hashes) {
+				infoContent.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + HexUtil.bytesToHex(hash.result));
+				infoContent.addChild("br");
+			}
+		}
+
+		final String dataLengthPrefix;
+		if (md.isCompressed()) {
+			infoContent.addChild("#", "Compressed ("+ md.getCompressionCodec().name + ")");
+			infoContent.addChild("br");
+			infoContent.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes.");
+			dataLengthPrefix = "Compressed";
+		} else {
+			dataLengthPrefix = "Uncompressed";
+		}
+
+		infoContent.addChild("#", dataLengthPrefix + " data size: " + md.dataLength() + " bytes.");
+		infoContent.addChild("br");
+		// FIXME END
+
 		browseContent.addChild(infoBox);
 
 		SplitFileSegmentKeys[] segments;
