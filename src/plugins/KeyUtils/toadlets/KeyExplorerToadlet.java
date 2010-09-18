@@ -272,6 +272,13 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 								metaBox.addChild("#", "\u00a0");
 							metaBox.addChild("#", "Compressed ("+ md.getCompressionCodec().name + ")");
 						}
+						if (md.hasTopData()) {
+							if (isFirst)
+								isFirst = false;
+							else
+								metaBox.addChild("#", "\u00a0");
+							metaBox.addChild("#", "HasTopData");
+						}
 						if (isFirst)
 							metaBox.addChild("#", "<No flag set>");
 					}
@@ -285,6 +292,23 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 
 					metaBox.addChild("br");
 
+					if (md.topCompatibilityMode != 0) {
+						metaBox.addChild("#", "Compatibility mode: " + md.getTopCompatibilityMode().toString());
+						metaBox.addChild("br");
+					}
+
+					if (md.hasTopData()) {
+						metaBox.addChild("#", "Top Block Data:");
+						metaBox.addChild("br");
+						metaBox.addChild("#", "\u00a0\u00a0DontCompress: " + Boolean.toString(md.topDontCompress));
+						metaBox.addChild("br");
+						metaBox.addChild("#", "\u00a0\u00a0Compressed size: " + Long.toString(md.topCompressedSize) + " bytes.");
+						metaBox.addChild("br");
+						metaBox.addChild("#", "\u00a0\u00a0Decompressed Size: " + Long.toString(md.topSize) + " bytes.");
+						metaBox.addChild("br");
+						metaBox.addChild("#", "\u00a0\u00a0Blocks: " + Integer.toString(md.topBlocksRequired) + " required, " + Integer.toString(md.topBlocksTotal) + " total.");
+						metaBox.addChild("br");
+					}
 					final HashResult[] hashes = md.getHashes();
 					if (hashes != null && hashes.length > 0) {
 						metaBox.addChild("#", "Hashes:");
