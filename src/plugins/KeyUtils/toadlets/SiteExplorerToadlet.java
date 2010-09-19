@@ -23,6 +23,7 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.FreenetURI;
+import freenet.osgi.support.URLEncoder;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
@@ -628,7 +629,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		boolean isEmpty = true;
 		if (md != null && md.isSplitfile()) {
 			cell.addChild("#", "[");
-			cell.addChild("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Split/?key=" + uri, "show split");
+			cell.addChild("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Split/?key=" + URLEncoder.encode(uri, false), "show split");
 			cell.addChild("#", "]\u00a0");
 			isEmpty = false;
 		}
