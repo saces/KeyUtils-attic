@@ -388,10 +388,9 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		final String dataLengthPrefix;
 		if (md.isCompressed()) {
-			infoContent.addChild("#", "Compressed ("+ md.getCompressionCodec().name + ")");
-			infoContent.addChild("br");
 			infoContent.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes.");
-			dataLengthPrefix = "Compressed";
+			infoContent.addChild("br");
+			dataLengthPrefix = "Compressed ("+ md.getCompressionCodec().name + ")";
 		} else {
 			dataLengthPrefix = "Uncompressed";
 		}
