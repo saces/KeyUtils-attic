@@ -3,6 +3,7 @@
 
 	<property name="freenet-cvs-snapshot.location" location="../fred/lib/FreenetService.jar"/>
 	<property name="compress.jar.location" location="../foe/FreenetCompress/dist/FreenetCompress.jar"/>
+	<property name="support.jar.location" location="../foe/FreenetSupport/dist/FreenetSupport.jar"/>
 
 	<property name="source-version" value="1.5"/>
 	<property name="target-version" value="1.5"/>
@@ -20,6 +21,7 @@
 		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="${source-version}" target="${target-version}">
 			<classpath>
 				<pathelement location="${compress.jar.location}"/>
+				<pathelement location="${support.jar.location}"/>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 			</classpath>
 			<include name="**/*.java"/>
