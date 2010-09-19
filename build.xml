@@ -32,6 +32,7 @@
 		<jar jarfile="${dist}/KeyUtils.jar" compress="true" index="false" basedir="${build}" excludes="**/package.html"
 				filesetmanifest="skip">
 			<manifest>
+				<attribute name="Plugin-Main-Class" value="plugins.KeyUtils.KeyUtilsPlugin"/>
 				<!-- attribute name="Main-Class" value="ch.ethz.iks.concierge.framework.Framework" / -->
 				<attribute name="Bundle-ManifestVersion" value="2" />
 				<attribute name="Bundle-SymbolicName" value="KeyUtils" />
