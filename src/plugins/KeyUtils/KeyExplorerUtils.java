@@ -5,7 +5,11 @@ package plugins.KeyUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
@@ -30,24 +34,39 @@ import freenet.client.MetadataParseException;
 import freenet.client.InsertContext.CompatibilityMode;
 import freenet.client.async.ClientContext;
 import freenet.client.async.ClientGetState;
+import freenet.client.async.ClientGetWorkerThread;
 import freenet.client.async.ClientGetter;
 import freenet.client.async.ManifestElement;
 import freenet.client.async.GetCompletionCallback;
 import freenet.client.async.KeyListenerConstructionException;
 import freenet.client.async.SnoopBucket;
 import freenet.client.async.SplitFileFetcher;
+import freenet.client.async.StreamGenerator;
+import freenet.client.filter.UnsafeContentTypeException;
 import freenet.crypt.HashResult;
 import freenet.keys.FreenetURI;
 import freenet.node.RequestClient;
 import freenet.node.RequestStarter;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.Logger;
+import freenet.support.OOMHandler;
 import freenet.support.api.Bucket;
 import freenet.support.api.BucketFactory;
+import freenet.support.compress.CompressionOutputSizeException;
+import freenet.support.compress.Compressor;
+import freenet.support.compress.DecompressorThreadManager;
 import freenet.support.compress.Compressor.COMPRESSOR_TYPE;
 import freenet.support.io.BucketTools;
+import freenet.support.io.Closer;
 
 public class KeyExplorerUtils {
+	
+	private static volatile boolean logMINOR;
+	private static volatile boolean logDEBUG;
+
+	static {
+		Logger.registerClass(KeyExplorerUtils.class);
+	}
 
 	private static class SnoopGetter implements SnoopBucket {
 
@@ -105,60 +124,42 @@ public class KeyExplorerUtils {
 	public static FetchResult splitGet(PluginRespirator pr, Metadata metadata) throws FetchException, MetadataParseException,
 			KeyListenerConstructionException {
 
+		if (!metadata.isSplitfile()) {
+			throw new MetadataParseException("uri did not point to splitfile");
+		}
+
 		final FetchWaiter fw = new FetchWaiter();
+
+		final FetchContext ctx = pr.getHLSimpleClient().getFetchContext();
 
 		GetCompletionCallback cb = new GetCompletionCallback() {
 
 			public void onBlockSetFinished(ClientGetState state, ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
 			}
 
 			public void onExpectedMIME(String mime, ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
 			}
 
 			public void onExpectedSize(long size, ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
 			}
 
 			public void onFailure(FetchException e, ClientGetState state, ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
 				fw.onFailure(e, null, container);
 			}
 
 			public void onFinalizedMetadata(ObjectContainer container) {
-				// TODO Auto-generated method stub
-			}
-
-			public void onSuccess(FetchResult result, ClientGetState state, ObjectContainer container, ClientContext context) {
-				// meta = Metadata.construct(result.asBucket());
-				// System.out.println("HEHEHE!!!YEAH!!!");
-				fw.onSuccess(result, null, container);
-				// fresult = result;
 			}
 
 			public void onTransition(ClientGetState oldState, ClientGetState newState, ObjectContainer container) {
-				// TODO Auto-generated method stub
-
 			}
 
 			public void onExpectedTopSize(long size, long compressed,
 					int blocksReq, int blocksTotal, ObjectContainer container,
 					ClientContext context) {
-				// TODO Auto-generated method stub
-				
 			}
 
 			public void onHashes(HashResult[] hashes,
 					ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void onSplitfileCompatibilityMode(long min, long max,
-					ObjectContainer container, ClientContext context) {
-				// TODO Auto-generated method stub
-				
 			}
 
 			public void onSplitfileCompatibilityMode(CompatibilityMode min,
@@ -166,13 +167,145 @@ public class KeyExplorerUtils {
 					boolean compressed, boolean bottomLayer,
 					boolean definitiveAnyway, ObjectContainer container,
 					ClientContext context) {
-				// TODO Auto-generated method stub
-				
+			}
+
+			public void onSuccess(StreamGenerator streamGenerator,
+					ClientMetadata clientMetadata,
+					List<? extends Compressor> decompressors,
+					ClientGetState state, ObjectContainer container,
+					ClientContext context) {
+
+				PipedOutputStream dataOutput = new PipedOutputStream();
+				PipedInputStream dataInput = new PipedInputStream();
+				OutputStream output = null;
+
+				DecompressorThreadManager decompressorManager = null;
+				ClientGetWorkerThread worker = null;
+				Bucket finalResult = null;
+				FetchResult result = null;
+
+				// FIXME use the two max lengths separately.
+				long maxLen = Math.max(ctx.maxTempLength, ctx.maxOutputLength);
+
+				try {
+					finalResult = context.getBucketFactory(false).makeBucket(maxLen);
+					dataOutput .connect(dataInput);
+					result = new FetchResult(clientMetadata, finalResult);
+
+					// Decompress
+					if(decompressors != null) {
+						if(logMINOR) Logger.minor(this, "Decompressing...");
+						decompressorManager =  new DecompressorThreadManager(dataInput, decompressors, maxLen);
+						dataInput = decompressorManager.execute();
+					}
+
+					output = finalResult.getOutputStream();
+					worker = new ClientGetWorkerThread(dataInput, output, null, null, null, false, ctx.charset, ctx.prefetchHook, ctx.tagReplacer);
+					worker.start();
+					try {
+						streamGenerator.writeTo(dataOutput, container, context);
+					} catch(IOException e) {
+						//Check if the worker thread caught an exception
+						worker.getError();
+						//If not, throw the original error
+						throw e;
+					}
+
+					if(logMINOR) Logger.minor(this, "Size of written data: "+result.asBucket().size());
+
+					if(decompressorManager != null) {
+						if(logMINOR) Logger.minor(this, "Waiting for decompression to finalize");
+						decompressorManager.waitFinished();
+					}
+
+					if(logMINOR) Logger.minor(this, "Waiting for hashing, filtration, and writing to finish");
+					worker.waitFinished();
+
+					if(worker.getClientMetadata() != null) {
+						clientMetadata = worker.getClientMetadata();
+						result = new FetchResult(clientMetadata, finalResult);
+					}
+					dataOutput.close();
+					dataInput.close();
+					output.close();
+				} catch (OutOfMemoryError e) {
+					OOMHandler.handleOOM(e);
+					System.err.println("Failing above attempted fetch...");
+					onFailure(new FetchException(FetchException.INTERNAL_ERROR, e), state, container, context);
+					if(finalResult != null) {
+						finalResult.free();
+					}
+					Bucket data = result.asBucket();
+					data.free();
+					return;
+				} catch(UnsafeContentTypeException e) {
+					Logger.error(this, "Impossible, this piece of code does not filter", e);
+					onFailure(new FetchException(e.getFetchErrorCode(), e), state, container, context);
+					if(finalResult != null) {
+						finalResult.free();
+					}
+					Bucket data = result.asBucket();
+					data.free();
+					return;
+				} catch(URISyntaxException e) {
+					//Impossible
+					Logger.error(this, "URISyntaxException converting a FreenetURI to a URI!: "+e, e);
+					onFailure(new FetchException(FetchException.INTERNAL_ERROR, e), state/*Not really the state's fault*/, container, context);
+					if(finalResult != null) {
+						finalResult.free();
+					}
+					Bucket data = result.asBucket();
+					data.free();
+					return;
+				} catch(CompressionOutputSizeException e) {
+					Logger.error(this, "Caught "+e, e);
+					onFailure(new FetchException(FetchException.TOO_BIG, e), state, container, context);
+					if(finalResult != null) {
+						finalResult.free();
+					}
+					Bucket data = result.asBucket();
+					data.free();
+					return;
+				} catch(IOException e) {
+					Logger.error(this, "Caught "+e, e);
+					onFailure(new FetchException(FetchException.BUCKET_ERROR, e), state, container, context);
+					if(finalResult != null) {
+						finalResult.free();
+					}
+					Bucket data = result.asBucket();
+					data.free();
+					return;
+				} catch(FetchException e) {
+					Logger.error(this, "Caught "+e, e);
+					onFailure(e, state, container, context);
+					if(finalResult != null) {
+						finalResult.free();
+					}
+					Bucket data = result.asBucket();
+					data.free();
+					return;
+				} catch(Throwable t) {
+					Logger.error(this, "Caught "+t, t);
+					onFailure(new FetchException(FetchException.INTERNAL_ERROR, t), state, container, context);
+					if(finalResult != null) {
+						finalResult.free();
+					}
+					Bucket data = result.asBucket();
+					data.free();
+					return;
+				} finally {
+					Closer.close(dataInput);
+					Closer.close(dataOutput);
+					Closer.close(output);
+				}
+
+				fw.onSuccess(result, null, container);
+
 			}
 		};
 
 		List<COMPRESSOR_TYPE> decompressors = new LinkedList<COMPRESSOR_TYPE>();
-		FetchContext ctx = pr.getHLSimpleClient().getFetchContext();
+		
 		boolean deleteFetchContext = false;
 		ClientMetadata clientMetadata = null;
 		ArchiveContext actx = null;
@@ -184,7 +317,7 @@ public class KeyExplorerUtils {
 			decompressors.add(codec);
 		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, null, (RequestClient) pr.getHLSimpleClient());
-		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, decompressors, clientMetadata, actx, recursionLevel, returnBucket, token,
+		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, decompressors, clientMetadata, actx, recursionLevel, token,
 				false, (short) 0, null, pr.getNode().clientCore.clientContext);
 
 		// VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri,

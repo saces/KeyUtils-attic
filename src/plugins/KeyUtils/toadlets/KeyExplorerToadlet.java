@@ -26,7 +26,9 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.RedirectException;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.crypt.HashResult;
 import freenet.keys.FreenetURI;
+import freenet.support.HexUtil;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
 import freenet.support.api.HTTPRequest;
@@ -198,15 +200,18 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 				if (md != null) {
 					if (automf && md.isArchiveManifest()) {
 						if (md.getArchiveType() == ARCHIVE_TYPE.TAR) {
-							throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + furi + extraParams);
+							writeTemporaryRedirect(ctx, "", KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + furi + extraParams);
+							return;
 						} else if (md.getArchiveType() == ARCHIVE_TYPE.ZIP) {
-							throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + furi + extraParams);
+							writeTemporaryRedirect(ctx, "", KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + furi + extraParams);
+							return;
 						} else {
 							errors.add("Unknown Archive Type: " + md.getArchiveType().name());
 						}
 					}
 					if (automf && md.isSimpleManifest()) {
-						throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams);
+						writeTemporaryRedirect(ctx, "", KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + furi + extraParams);
+						return;
 					}
 				}
 			}
@@ -224,6 +229,8 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 				if (md != null) {
 					HTMLNode metaBox = pluginContext.pageMaker.getInfobox("#", "Decomposed metadata", contentNode);
 
+					metaBox.addChild("#", "Metadata version "+Short.toString(md.getParsedVersion()));
+					metaBox.addChild("br");
 					metaBox.addChild("#", "Document type:\u00a0");
 					if (md.isSimpleRedirect()) {
 						metaBox.addChild("#", "SimpleRedirect");
@@ -244,6 +251,12 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					}
 					metaBox.addChild("br");
 
+					final String MIMEType = md.getMIMEType();
+					if (MIMEType != null) {
+						metaBox.addChild("#", "MIME Type: " + MIMEType);
+						metaBox.addChild("br");
+					}
+
 					if (md.haveFlags()) {
 						metaBox.addChild("#", "Flags:\u00a0");
 						boolean isFirst = true;
@@ -259,6 +272,13 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 								metaBox.addChild("#", "\u00a0");
 							metaBox.addChild("#", "Compressed ("+ md.getCompressionCodec().name + ")");
 						}
+						if (md.hasTopData()) {
+							if (isFirst)
+								isFirst = false;
+							else
+								metaBox.addChild("#", "\u00a0");
+							metaBox.addChild("#", "HasTopData");
+						}
 						if (isFirst)
 							metaBox.addChild("#", "<No flag set>");
 					}
@@ -272,9 +292,42 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 
 					metaBox.addChild("br");
 
+					if (md.topCompatibilityMode != 0) {
+						metaBox.addChild("#", "Compatibility mode: " + md.getTopCompatibilityMode().toString());
+						metaBox.addChild("br");
+					}
+
+					if (md.hasTopData()) {
+						metaBox.addChild("#", "Top Block Data:");
+						metaBox.addChild("br");
+						metaBox.addChild("#", "\u00a0\u00a0DontCompress: " + Boolean.toString(md.topDontCompress));
+						metaBox.addChild("br");
+						metaBox.addChild("#", "\u00a0\u00a0Compressed size: " + Long.toString(md.topCompressedSize) + " bytes.");
+						metaBox.addChild("br");
+						metaBox.addChild("#", "\u00a0\u00a0Decompressed Size: " + Long.toString(md.topSize) + " bytes.");
+						metaBox.addChild("br");
+						metaBox.addChild("#", "\u00a0\u00a0Blocks: " + Integer.toString(md.topBlocksRequired) + " required, " + Integer.toString(md.topBlocksTotal) + " total.");
+						metaBox.addChild("br");
+					}
+					final HashResult[] hashes = md.getHashes();
+					if (hashes != null && hashes.length > 0) {
+						metaBox.addChild("#", "Hashes:");
+						metaBox.addChild("br");
+						for (final HashResult hash : hashes) {
+							metaBox.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + HexUtil.bytesToHex(hash.result));
+							metaBox.addChild("br");
+						}
+					}
+
 					if (md.isSplitfile()) {
 						metaBox.addChild("#", "Splitfile size\u00a0=\u00a0" + md.dataLength() + " bytes.");
 						metaBox.addChild("br");
+
+						byte[] splitfileCryptoKey = md.getCustomSplitfileKey();
+						if (splitfileCryptoKey != null) {
+							metaBox.addChild("#", "Splitfile CryptoKey\u00a0=\u00a0" + HexUtil.bytesToHex(splitfileCryptoKey));
+							metaBox.addChild("br");
+						}
 					}
 
 					metaBox.addChild("#", "Options:");
@@ -311,7 +364,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					metaBox.addChild("br");
 
 					if ((uri == null) && md.isSplitfile() ) {
-						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
+						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Download?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
 						metaBox.addChild("br");
 					}
 				}

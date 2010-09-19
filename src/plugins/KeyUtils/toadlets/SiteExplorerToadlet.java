@@ -598,7 +598,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 				}
 				else
 					cell.addChild("#", "\u00a0");
-				cell.addChild("span", "title", "Compressed", "CP");
+				cell.addChild("span", "title", "Compressed", "C");
 			}
 			if (!isFirst)
 				cell.addChild("#", ")\u00a0");

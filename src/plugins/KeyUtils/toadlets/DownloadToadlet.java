@@ -40,7 +40,7 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
-		if (!normalizePath(request.getPath()).equals(path())) {
+		if (!normalizePath(request.getPath()).equals("/")) {
 			sendErrorPage(ctx, 404, "Not found", "the path '"+uri+"' was not found");
 			return;
 		}
