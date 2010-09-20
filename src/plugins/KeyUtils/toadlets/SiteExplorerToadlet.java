@@ -348,7 +348,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			if (md.isSingleFileRedirect()) {
 				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
 			} else {
-				htmlTableRow.addChild(makeEmptyCell());
+				htmlTableRow.addChild(makeTargetCell(md, furi + fname));
 			}
 			if (deep) {
 				Metadata subMd;
