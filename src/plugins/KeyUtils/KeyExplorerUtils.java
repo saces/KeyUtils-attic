@@ -317,7 +317,7 @@ public class KeyExplorerUtils {
 			decompressors.add(codec);
 		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, null, (RequestClient) pr.getHLSimpleClient());
-		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, decompressors, clientMetadata, actx, recursionLevel, token,
+		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, true, decompressors, clientMetadata, actx, recursionLevel, token,
 				false, (short) 0, null, pr.getNode().clientCore.clientContext);
 
 		// VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri,
