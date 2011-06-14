@@ -5,6 +5,7 @@ package plugins.KeyUtils;
 
 import plugins.KeyUtils.toadlets.DownloadToadlet;
 import plugins.KeyUtils.toadlets.ExtraToadlet;
+import plugins.KeyUtils.toadlets.FBlobToadlet;
 import plugins.KeyUtils.toadlets.KeyExplorerToadlet;
 import plugins.KeyUtils.toadlets.SiteExplorerToadlet;
 import plugins.KeyUtils.toadlets.SplitExplorerToadlet;
@@ -75,6 +76,8 @@ public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP
 		webInterface.registerVisible(splitToadlet, PLUGIN_CATEGORY, "SplitExplorer", "Explore a split file");
 		ExtraToadlet extraToadlet = new ExtraToadlet(pluginContext);
 		webInterface.registerVisible(extraToadlet, PLUGIN_CATEGORY, "Extra Calculator", "Compose and decompose Freenet URI extra data");
+		FBlobToadlet fblobToadlet = new FBlobToadlet(pluginContext);
+		webInterface.registerVisible(fblobToadlet, PLUGIN_CATEGORY, "FBlob Viewer", "Show the contents of a FBlob");
 
 		// Invisible pages
 		DownloadToadlet dlToadlet = new DownloadToadlet(pluginContext, keyToadlet);

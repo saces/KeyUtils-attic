@@ -16,6 +16,7 @@ public class Globals {
 	static final String MFTYPE_SIMPLE = "simplemanifest";
 	static final String MFTYPE_AUTO = "auto";
 
+	static final String PARAM_FILENAME = "filename";
 	static final String PARAM_URI = "key";
 	static final String PARAM_MFTYPE = "mftype";
 	static final String PARAM_RECURSIVE = "deep";
