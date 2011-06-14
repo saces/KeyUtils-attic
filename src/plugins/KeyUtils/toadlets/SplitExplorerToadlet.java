@@ -44,7 +44,7 @@ import freenet.support.plugins.helpers1.WebInterfaceToadlet;
  *
  */
 public class SplitExplorerToadlet extends WebInterfaceToadlet {
-	
+
 	private static abstract class AbstractSnoop implements SnoopMetadata {
 		abstract Metadata getResult();
 	}

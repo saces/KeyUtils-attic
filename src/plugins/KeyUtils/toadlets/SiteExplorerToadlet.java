@@ -224,11 +224,11 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		PageNode page = pluginContext.pageMaker.getPageNode("KeyExplorer", ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
-	
+
 		Metadata metadata = null;
-	
+
 		FreenetURI furi = null;
-	
+
 		try {
 			furi = URISanitizer.sanitizeURI(errors, key, false, URISanitizer.Options.NOMETASTRINGS, URISanitizer.Options.SSKFORUSK);
 			
@@ -254,19 +254,19 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			Logger.error(this, "Hu?", e);
 			errors.add("Internal Error: " + e.getMessage());
 		}
-	
+
 		if (errors.size() > 0) {
 			contentNode.addChild(createErrorBox(errors));
 			contentNode.addChild(createUriBox(pluginContext, ((furi==null)?"":furi.toString(false, false)), deep, errors));
 			writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 			return;
 		}
-	
+
 		contentNode.addChild(createUriBox(pluginContext, furi.toString(false, false), deep, errors));
 		String title = "Key: " + furi.toString(false, false) + "\u00a0(Manifest)";
 		InfoboxNode listInfobox = pluginContext.pageMaker.getInfobox(title);
 		HTMLNode listBox = listInfobox.content;
-	
+
 		// HTMLNode contentTable = contentNode.addChild("table", "class", "column");
 		HTMLNode contentTable = listBox.addChild("table");
 		HTMLNode tableHead = contentTable.addChild("thead");
@@ -283,7 +283,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		nextTableCell.addChild("#", "Mime");
 		nextTableCell = tableRow.addChild("th");
 		nextTableCell.addChild("#", "Target");
-	
+
 		parseMetadataItem(contentTable, "", metadata, "", furi.toString(false, false), errors, deep, 0, -1);
 		if (errors.size() > 0) {
 			contentNode.addChild(createErrorBox(errors));
@@ -294,34 +294,34 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void parseMetadataItem(HTMLNode htmlTable, String name, Metadata md, String prefix, String furi, List<String> errors, boolean deep, int nestedLevel, int subLevel) {
-	
+
 		String fname = prefix + name;
-	
+
 		HTMLNode htmlTableRow = htmlTable.addChild("tr");
 		htmlTableRow.addChild(makeNestedDeepCell(nestedLevel, subLevel));
 		htmlTableRow.addChild(makeTypeCell(md));
-	
+
 		// the clear & easy first
 		if (md.isSimpleManifest()) {
 			// a subdir
 			HashMap<String, Metadata> docs = md.getDocuments();
 			Metadata defaultDoc = md.getDefaultDocument();
-	
+
 			htmlTableRow.addChild(makeNameCell(prefix, name));
 			htmlTableRow.addChild(makeCell("(" + Integer.toString(docs.size())+" Items)"));
 			htmlTableRow.addChild(makeEmptyCell());
 			htmlTableRow.addChild(makeEmptyCell());
-	
+
 			if (defaultDoc != null) {
 				parseMetadataItem(htmlTable, "/", defaultDoc, prefix+name, furi, errors, deep, nestedLevel, subLevel+1);
 			}
-	
+
 			for (Entry<String, Metadata> entry: docs.entrySet()) {
 				parseMetadataItem(htmlTable, entry.getKey(), entry.getValue(), prefix+name+'/', furi, errors, deep, nestedLevel, subLevel+1);
 			}
 			return;
 		}
-	
+
 		if (md.isArchiveInternalRedirect()) {
 			HTMLNode cell = htmlTableRow.addChild("td");
 			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
@@ -330,7 +330,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			htmlTableRow.addChild(makeCell(md.getArchiveInternalName()));
 			return;
 		}
-	
+
 		if (md.isSymbolicShortlink()) {
 			HTMLNode cell = htmlTableRow.addChild("td");
 			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
@@ -339,7 +339,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			htmlTableRow.addChild(makeCell("->"+md.getSymbolicShortlinkTargetName()));
 			return;
 		}
-	
+
 		if (md.isMultiLevelMetadata()) {
 			HTMLNode cell = htmlTableRow.addChild("td");
 			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
@@ -375,7 +375,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			}
 			return;
 		}
-	
+
 		if (md.isSimpleRedirect()) {
 			HTMLNode cell = htmlTableRow.addChild("td");
 			cell.addChild(new HTMLNode("a", "href", "/" + furi + fname, fname));
@@ -385,7 +385,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 				htmlTableRow.addChild(makeTargetCell(md, furi + fname, new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?key=" + md.getSingleTarget().toString(false, false), md.getSingleTarget().toString(false, false))));
 			else
 				htmlTableRow.addChild(makeTargetCell(md, furi + fname));
-	
+
 			// the row for the item itself is written, now look inside for multi level md
 			if (deep && md.isNoMimeEnabled() && md.isSingleFileRedirect()) {
 				// looks like possible ml
@@ -416,13 +416,13 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			}
 			return;
 		}
-	
+
 		if (md.isArchiveMetadataRedirect()) {
 			htmlTableRow.addChild(makeNameCell(prefix, name));
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
 			htmlTableRow.addChild(makeCell(md.getArchiveInternalName()));
-	
+
 			if (deep) {
 				//grab data;
 				FreenetURI u;
@@ -447,12 +447,12 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			}
 			return;
 		}
-	
+
 		if (md.isArchiveManifest()) {
 			htmlTableRow.addChild(makeNameCell(prefix, name));
 			htmlTableRow.addChild(makeSizeCell(md));
 			htmlTableRow.addChild(makeMimeCell(md));
-	
+
 			if (md.isSingleFileRedirect()) {
 				String containerTarget = md.getSingleTarget().toString(false, false);
 				htmlTableRow.addChild(makeCell(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/?mftype=" + md.getArchiveType().name() + "manifest&key=" + containerTarget, containerTarget)));
@@ -483,7 +483,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			}
 			return;
 		}
-	
+
 		// in theory this is 'unreachable code'
 		htmlTableRow.addChild(makeNameCell(prefix, name));
 		htmlTableRow.addChild(makeSizeCell(md));
@@ -552,7 +552,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 
 	private HTMLNode makeTypeCell(Metadata md) {
 		HTMLNode cell = new HTMLNode("td");
-	
+
 		if (md.isArchiveInternalRedirect() || md.isArchiveMetadataRedirect() || md.isSymbolicShortlink())
 			cell.addChild("span", "title", "All data are in container/chunk", "[c]");
 		else if (md.getSingleTarget() != null)

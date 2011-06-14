@@ -21,7 +21,7 @@ public class GetResult {
 	public Bucket getData() {
 		return data;
 	}
-	
+
 	public void free() {
 		if (data != null) data.free();
 	}

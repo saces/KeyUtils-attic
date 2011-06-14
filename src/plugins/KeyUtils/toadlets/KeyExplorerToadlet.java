@@ -76,7 +76,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			ml = true;
 			hexWidth = 32;
 		}
-		
+
 		String extraParams = "&hexwidth=" + hexWidth;
 		if (automf) {
 			extraParams += "&automf=checked";
@@ -376,7 +376,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		}
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
-	
+
 	private HTMLNode createUriBox(PluginContext pCtx, String uri, int hexWidth, boolean automf, boolean deep, List<String> errors) {
 		InfoboxNode box = pCtx.pageMaker.getInfobox("Explore a freenet key");
 		HTMLNode browseBox = box.outer;
@@ -438,7 +438,6 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						formatter.out().append((char) data[i + offset]);
 					} else
 						formatter.out().append('.');
-
 				}
 				formatter.out().append('\n');
 			}
@@ -449,5 +448,4 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		formatter.flush();
 		return sb.toString();
 	}
-
 }

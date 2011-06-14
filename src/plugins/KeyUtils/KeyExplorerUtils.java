@@ -60,7 +60,7 @@ import freenet.support.io.BucketTools;
 import freenet.support.io.Closer;
 
 public class KeyExplorerUtils {
-	
+
 	private static volatile boolean logMINOR;
 	private static volatile boolean logDEBUG;
 
@@ -495,5 +495,4 @@ public class KeyExplorerUtils {
 		result = BucketTools.toByteArray(splitGet(pluginRespirator, md).asBucket());
 		return result;
 	}
-
 }
