@@ -45,6 +45,7 @@ public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP
 	private PluginContext pluginContext;
 	private FCPHandler fcpHandler;
 
+	@Override
 	public void handle(PluginReplySender replysender, SimpleFieldSet params, Bucket data, int accesstype) {
 		try {
 			fcpHandler.handle(replysender, params, data, accesstype);
@@ -53,6 +54,7 @@ public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP
 		}
 	}
 
+	@Override
 	public void runPlugin(PluginRespirator pr) {
 
 		if (logMINOR)
@@ -83,6 +85,7 @@ public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP
 
 	}
 
+	@Override
 	public void terminate() {
 		// TODO kill all 'session handles'
 		// TODO kill all requests
@@ -92,10 +95,12 @@ public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP
 		fcpHandler = null;
 	}
 
+	@Override
 	public String getVersion() {
 		return Version.longVersionString;
 	}
 
+	@Override
 	public String getString(String key) {
 		// disable, it is just to loud in log for now
 //		if (logDEBUG)
@@ -103,11 +108,13 @@ public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP
 		return key;
 	}
 
+	@Override
 	public void setLanguage(LANGUAGE selectedLanguage) {
 		if (logDEBUG)
 			Logger.debug(this, "Setlang to: "+selectedLanguage.fullName);
 	}
 
+	@Override
 	public long getRealVersion() {
 		return Version.version;
 	}

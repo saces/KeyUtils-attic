@@ -77,6 +77,7 @@ public class KeyExplorerUtils {
 			_bf = bf;
 		}
 
+		@Override
 		public boolean snoopBucket(Bucket data, boolean isMetadata,
 				ObjectContainer container, ClientContext context) {
 			Bucket temp;
@@ -134,34 +135,43 @@ public class KeyExplorerUtils {
 
 		GetCompletionCallback cb = new GetCompletionCallback() {
 
+			@Override
 			public void onBlockSetFinished(ClientGetState state, ObjectContainer container, ClientContext context) {
 			}
 
+			@Override
 			public void onExpectedMIME(String mime, ObjectContainer container, ClientContext context) {
 			}
 
+			@Override
 			public void onExpectedSize(long size, ObjectContainer container, ClientContext context) {
 			}
 
+			@Override
 			public void onFailure(FetchException e, ClientGetState state, ObjectContainer container, ClientContext context) {
 				fw.onFailure(e, null, container);
 			}
 
+			@Override
 			public void onFinalizedMetadata(ObjectContainer container) {
 			}
 
+			@Override
 			public void onTransition(ClientGetState oldState, ClientGetState newState, ObjectContainer container) {
 			}
 
+			@Override
 			public void onExpectedTopSize(long size, long compressed,
 					int blocksReq, int blocksTotal, ObjectContainer container,
 					ClientContext context) {
 			}
 
+			@Override
 			public void onHashes(HashResult[] hashes,
 					ObjectContainer container, ClientContext context) {
 			}
 
+			@Override
 			public void onSplitfileCompatibilityMode(CompatibilityMode min,
 					CompatibilityMode max, byte[] customSplitfileKey,
 					boolean compressed, boolean bottomLayer,
@@ -169,6 +179,7 @@ public class KeyExplorerUtils {
 					ClientContext context) {
 			}
 
+			@Override
 			public void onSuccess(StreamGenerator streamGenerator,
 					ClientMetadata clientMetadata,
 					List<? extends Compressor> decompressors,
