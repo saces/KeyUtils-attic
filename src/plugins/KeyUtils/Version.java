@@ -19,8 +19,8 @@ public class Version {
 	 * 
 	 * I have set this to 3000 to allow encoding marketing versions into real versions.
 	 * Long provides plenty of leeway! Toad. */
-	public static final long version = 5008;
+	public static final long version = 5010;
 
-	public static final String longVersionString = "0.5α " + gitRevision;
+	public static final String longVersionString = "0.5.1α " + gitRevision;
 
 }
