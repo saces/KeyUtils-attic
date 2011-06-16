@@ -72,7 +72,7 @@ public class FBlobToadlet extends WebInterfaceToadlet {
 		}
 
 		HTMLNode fileBox = pluginContext.pageMaker.getInfobox("infobox-information", "Show the content of a FBlob file", contentNode);
-		fileBox.addChild("#", "Select a FBlob file to disdlay:");
+		fileBox.addChild("#", "Select a FBlob file to display:");
 		HTMLNode fileForm = pluginContext.pluginRespirator.addFormChild(fileBox, path(), "uriForm");
 		fileForm.addChild("#", "File: \u00a0 ");
 		fileForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "file", Globals.PARAM_FILENAME, "70" });
