@@ -105,7 +105,7 @@ public class KeyExplorerUtils {
 		SnoopGetter snooper = new SnoopGetter(pr.getNode().clientCore.tempBucketFactory);
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
 		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
 		get.setBucketSnoop(snooper);
 
 		try {
