@@ -508,7 +508,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			snooper = new SnoopFirst();
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
 		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
 		get.setMetaSnoop(snooper);
 
 		try {
@@ -531,7 +531,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		SnoopLevel snooper = new SnoopLevel(level);
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
 		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
 		get.setMetaSnoop(snooper);
 
 		try {
