@@ -28,6 +28,7 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.crypt.HashResult;
 import freenet.keys.ClientCHK;
 import freenet.keys.FreenetURI;
+import freenet.l10n.PluginL10n;
 import freenet.node.RequestClient;
 import freenet.node.RequestStarter;
 import freenet.pluginmanager.PluginRespirator;
@@ -44,6 +45,8 @@ import freenet.support.plugins.helpers1.WebInterfaceToadlet;
  *
  */
 public class SplitExplorerToadlet extends WebInterfaceToadlet {
+
+	private final PluginL10n _intl;
 
 	private static abstract class AbstractSnoop implements SnoopMetadata {
 		abstract Metadata getResult();
@@ -114,8 +117,9 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 	}
 
-	public SplitExplorerToadlet(PluginContext context) {
+	public SplitExplorerToadlet(PluginContext context, PluginL10n intl) {
 		super(context, KeyUtilsPlugin.PLUGIN_URI, "Split");
+		_intl = intl;
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -182,7 +186,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key, int level) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("SplitExplorer.PageTitle"), ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -213,7 +217,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeSplitPage(ToadletContext ctx, List<String> errors, FreenetURI furi, int level) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("SplitExplorer.PageTitle"), ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -548,5 +552,9 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			throw new FetchException(FetchException.INVALID_METADATA, "URI does not point to a split file");
 		}
 		return snooper.lastSplit;
+	}
+
+	private String i18n(String key) {
+		return _intl.getBase().getString(key);
 	}
 }

@@ -123,7 +123,7 @@
 				<attribute name="Plugin-Main-Class" value="plugins.KeyUtils.KeyUtilsPlugin"/>
 			</manifest>
 			<fileset dir="src/" casesensitive="no">
-				<include name="*.txt"/>
+				<include name="**/*.txt"/>
 			</fileset>
 			<fileset dir="${build}/"/>
 		</jar>

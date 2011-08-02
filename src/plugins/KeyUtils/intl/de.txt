@@ -1,0 +1,6 @@
+Config.autoMF=auto manifest
+Config.autoMFLong=Key, wenn möglich, als Manifest/Site öffnen.
+ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.label=KeyUtils
+ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.tooltip=Voreinstellungen für KeyUtils
+plugins.KeyUtils.KeyUtilsPlugin=KeyUtils Voreinstellungen
+End

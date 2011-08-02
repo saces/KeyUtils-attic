@@ -20,6 +20,7 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.KeyBlock;
 import freenet.keys.NodeCHK;
 import freenet.keys.NodeSSK;
+import freenet.l10n.PluginL10n;
 import freenet.support.Base64;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
@@ -34,8 +35,11 @@ import freenet.support.plugins.helpers1.WebInterfaceToadlet;
  */
 public class FBlobToadlet extends WebInterfaceToadlet {
 
-	public FBlobToadlet(PluginContext context) {
+	private final PluginL10n _intl;
+
+	public FBlobToadlet(PluginContext context, PluginL10n intl) {
 		super(context, KeyUtilsPlugin.PLUGIN_URI, "FBlob");
+		_intl = intl;
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -62,7 +66,7 @@ public class FBlobToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, HTTPUploadedFile file) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("FBlobViewer.PageTitle"), ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -153,5 +157,9 @@ public class FBlobToadlet extends WebInterfaceToadlet {
 		} catch (BinaryBlobFormatException e) {
 			errors.add("Blob Format Error: "+e.getLocalizedMessage());
 		}
+	}
+
+	private String i18n(String key) {
+		return _intl.getBase().getString(key);
 	}
 }
