@@ -1,3 +1,4 @@
+About.PageTitle=About
 Config.autoMF=auto manifest
 Config.autoMFLong=open key as manifest/site if possible.
 Config.hexWidth=Hex view width
@@ -10,6 +11,8 @@ ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.label=KeyUtils
 ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.tooltip=default settings for KeyUtils
 ExtraCalculator.PageTitel=Key Utility Suite - Extra Calculator
 KeyExplorer.PageTitle=Key Utility Suite - Key Explorer
+Menu.About.title=About
+Menu.About.tooltip=Info about Key Utils
 Menu.ExtraCalculator.title=Extra Calculator
 Menu.ExtraCalculator.tooltip=Compose and decompose Freenet URI extra data
 Menu.FBlobViewer.title=FBlob Viewer
