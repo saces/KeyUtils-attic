@@ -203,7 +203,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		contentNode.addChild(uriBox);
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 

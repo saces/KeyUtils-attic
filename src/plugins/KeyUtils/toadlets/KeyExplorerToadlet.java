@@ -387,6 +387,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			if (errors.size() > 0)
 				contentNode.addChild(createErrorBox(errors));
 		}
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
 
@@ -461,6 +462,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		formatter.flush();
 		return sb.toString();
 	}
+
 	private String i18n(String key) {
 		return _intl.getBase().getString(key);
 	}

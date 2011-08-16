@@ -52,6 +52,7 @@ public class AboutToadlet extends WebInterfaceToadlet {
 		contentNode.addChild(createVersionBox(pluginContext));
 		//TODO contentNode.addChild(createFeatureBox(pluginContext));
 		contentNode.addChild(createReportBox(pluginContext));
+		contentNode.addChild(createDonateBox(pluginContext));
 
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
@@ -85,6 +86,28 @@ public class AboutToadlet extends WebInterfaceToadlet {
 		infoContent.addChild("#", ") or report them in sone ");
 		infoContent.addChild(new HTMLNode("nobr", "@sone://MYLAnId-ZEyXhDGGbYOa1gOtkZZrFNTXjFl1dibLj9E"));
 		return infoBox;
+	}
+
+	private HTMLNode createDonateBox(PluginContext pCtx) {
+		InfoboxNode box = pCtx.pageMaker.getInfobox("Donate");
+		HTMLNode donateBox = box.outer;
+		HTMLNode donateContent = box.content;
+
+		donateContent.addChild("#", "Donate");
+
+		HTMLNode flattr = new HTMLNode("p");
+		HTMLNode flattrlink = flattr.addChild(new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=https://flattr.com/thing/374147/KeyUtils"));
+		flattrlink.addChild(new HTMLNode("img", new String[] {"src", "align"}, new String[] {"images/flattr-badge-large.png", "middle"}));
+		HTMLNode small = new HTMLNode("small");
+		small.addChild("#", "\u00a0https://flattr.com/thing/374147/KeyUtils");
+		flattr.addChild(small);
+		donateContent.addChild(flattr);
+
+		HTMLNode btc = new HTMLNode("p");
+		btc.addChild(new HTMLNode("img", new String[] {"src", "align"}, new String[] {"images/th_Bitcoinorg_100x35_new.png", "middle"}));
+		btc.addChild("#", "\u00a0144vvEyH6zWYtPYMiuaKvUtVu4B3uSeToW");
+		donateContent.addChild(btc);
+		return donateBox;
 	}
 
 	private String i18n(String key) {

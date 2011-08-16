@@ -101,6 +101,7 @@ public class FBlobToadlet extends WebInterfaceToadlet {
 		if (errors.size() > 0) {
 			contentNode.addChild(createErrorBox(errors));
 		}
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 

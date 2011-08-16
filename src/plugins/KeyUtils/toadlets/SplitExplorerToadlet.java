@@ -212,7 +212,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		contentNode.addChild(uriBox);
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 
@@ -257,7 +257,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 		contentNode.addChild(uriBox);
 		contentNode.addChild(splitBox);
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 

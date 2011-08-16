@@ -91,7 +91,7 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 		HTMLNode contentNode = page.content;
 
 		contentNode.addChild(createErrorBox(errors, path(), null, null));
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 501, "OK", outer.generate());
 	}
 

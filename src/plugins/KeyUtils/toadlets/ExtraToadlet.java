@@ -314,7 +314,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 
 		contentNode.addChild(uriBox);
 		contentNode.addChild(composeBox);
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 
