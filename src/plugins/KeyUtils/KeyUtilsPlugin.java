@@ -10,6 +10,7 @@ import plugins.KeyUtils.toadlets.FBlobToadlet;
 import plugins.KeyUtils.toadlets.KeyExplorerToadlet;
 import plugins.KeyUtils.toadlets.SiteExplorerToadlet;
 import plugins.KeyUtils.toadlets.SplitExplorerToadlet;
+import plugins.KeyUtils.toadlets.StaticToadlet;
 import freenet.config.SubConfig;
 import freenet.l10n.BaseL10n.LANGUAGE;
 import freenet.l10n.PluginL10n;
@@ -93,6 +94,10 @@ public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP
 		// Invisible pages
 		DownloadToadlet dlToadlet = new DownloadToadlet(pluginContext, keyToadlet, intl);
 		webInterface.registerInvisible(dlToadlet);
+		StaticToadlet cssToadlet = new StaticToadlet(pluginContext, KeyUtilsPlugin.PLUGIN_URI, "css", "/data/css/", "text/css", intl);
+		webInterface.registerInvisible(cssToadlet);
+		StaticToadlet picToadlet = new StaticToadlet(pluginContext, KeyUtilsPlugin.PLUGIN_URI, "images", "/data/images/", "image/png", intl);
+		webInterface.registerInvisible(picToadlet);
 
 		if (logMINOR)
 			Logger.minor(this, "Initialising Key Utils done.");
