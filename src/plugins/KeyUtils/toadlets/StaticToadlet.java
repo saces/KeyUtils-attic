@@ -51,11 +51,11 @@ public class StaticToadlet extends InvisibleWebInterfaceToadlet {
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
 
 		String path = normalizePath(request.getPath());
-		if (logDEBUG) Logger.debug(this, "Requested ressource: "+path);
+		if (logDEBUG) Logger.debug(this, "Requested ressource: "+path+" ("+uri+')');
 		int lastSlash = path.lastIndexOf('/');
 		String filename = path.substring(lastSlash + 1);
 		String fn = resourcePathPrefix + filename;
-		if (logDEBUG) Logger.debug(this, "Resolved ressource path: "+path);
+		if (logDEBUG) Logger.debug(this, "Resolved ressource path: "+fn);
 
 		InputStream fileInputStream = getClass().getResourceAsStream(fn);
 		if (fileInputStream == null) {
