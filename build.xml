@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="KeyUtils" default="bundle" basedir=".">
 
-	<property name="freenet-cvs-snapshot.location" location="../fred/lib/FreenetService.jar"/>
+	<property name="freenet-cvs-snapshot.location" location="../fred/dist/FreenetService.jar"/>
 	<property name="compress.jar.location" location="../foe/FreenetCompress/dist/FreenetCompress.jar"/>
 	<property name="support.jar.location" location="../foe/FreenetSupport/dist/FreenetSupport.jar"/>
 
