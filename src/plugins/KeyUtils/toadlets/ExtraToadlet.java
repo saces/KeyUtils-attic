@@ -17,6 +17,7 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.FreenetURI;
 import freenet.keys.Key;
 import freenet.keys.KeyBlock;
+import freenet.l10n.PluginL10n;
 import freenet.support.Base64;
 import freenet.support.HTMLNode;
 import freenet.support.HexUtil;
@@ -41,8 +42,11 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 	private static final String FIELDNAME_SSK_TYPE = "ssk_type";
 	private static final String FIELDNAME_SSK_PRIVATE = "ssk_private";
 
-	public ExtraToadlet(PluginContext context) {
+	private final PluginL10n _intl;
+
+	public ExtraToadlet(PluginContext context, PluginL10n intl) {
 		super(context, KeyUtilsPlugin.PLUGIN_URI, "Extra");
+		_intl = intl;
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -283,7 +287,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 	}
 
 	private PageNode getPageNode(ToadletContext ctx) {
-		return pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
+		return pluginContext.pageMaker.getPageNode(i18n("ExtraCalculator.PageTitel"), ctx);
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key) throws ToadletContextClosedException, IOException {
@@ -310,7 +314,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 
 		contentNode.addChild(uriBox);
 		contentNode.addChild(composeBox);
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 
@@ -478,5 +482,9 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		browseForm.addChild("br");
 		browseForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", "debug", "Compose SSK!" });
 		return browseBox;
+	}
+
+	private String i18n(String key) {
+		return _intl.getBase().getString(key);
 	}
 }

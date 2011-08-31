@@ -1,3 +1,6 @@
+/* This code is part of Freenet. It is distributed under the GNU General
+ * Public License, version 2 (or at your option any later version). See
+ * http://www.gnu.org/ for further details of the GPL. */
 package plugins.KeyUtils;
 
 import java.net.MalformedURLException;
@@ -25,12 +28,12 @@ public class FCPHandler extends AbstractFCPHandler {
 	@Override
 	public void handle(PluginReplySender replysender, String command, String identifier, SimpleFieldSet params, Bucket data, int accesstype) throws PluginNotFoundException {
 		if (params == null) {
-			sendError(replysender, 0, "<void>", "Got void message");
+			sendError(replysender, 0, identifier, "Got void message");
 			return;
 		}
 
 		if (data != null) {
-			sendError(replysender, 0, "<void>", "Got a diatribe piece of writing. Data not allowed!");
+			sendError(replysender, 0, identifier, "Got a diatribe piece of writing. Data not allowed!");
 			return;
 		}
 

@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import plugins.KeyUtils.Configuration;
 import plugins.KeyUtils.GetResult;
 import plugins.KeyUtils.KeyExplorerUtils;
 import plugins.KeyUtils.KeyUtilsPlugin;
@@ -28,6 +29,7 @@ import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.crypt.HashResult;
 import freenet.keys.FreenetURI;
+import freenet.l10n.PluginL10n;
 import freenet.support.HexUtil;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
@@ -46,8 +48,11 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 	private static final String PARAM_AUTOMF = "automf";
 	private static final String PARAM_HEXWIDTH = "hexwidth";
 
-	public KeyExplorerToadlet(PluginContext context) {
+	private final PluginL10n _intl;
+
+	public KeyExplorerToadlet(PluginContext context, PluginL10n intl) {
 		super(context, KeyUtilsPlugin.PLUGIN_URI, "");
+		_intl = intl;
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
@@ -60,23 +65,31 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		boolean automf;
 		boolean deep;
 		boolean ml;
-		int hexWidth;
+		int hexWidth = request.getIntParam(PARAM_HEXWIDTH, Configuration.getHexWidth());
+		if (request.isParameterSet(PARAM_AUTOMF)) {
+			automf = request.getParam(PARAM_AUTOMF).length() > 0;
+		} else {
+			automf = Configuration.getAutoMF();
+		}
+		if (request.isParameterSet(Globals.PARAM_RECURSIVE)) {
+			deep = request.getParam(Globals.PARAM_RECURSIVE).length() > 0;
+		} else {
+			deep = Configuration.getDeep();
+		}
+		if (request.isParameterSet(Globals.PARAM_MULTILEVEL)) {
+			ml = request.getParam(Globals.PARAM_MULTILEVEL).length() > 0;
+		} else {
+			ml = Configuration.getMultilevel();
+		}
+
 		if (request.isParameterSet(Globals.PARAM_URI)) {
 			key = request.getParam(Globals.PARAM_URI);
 			type = request.getParam(Globals.PARAM_MFTYPE);
-			automf = request.getParam(PARAM_AUTOMF).length() > 0;
-			deep = request.getParam(Globals.PARAM_RECURSIVE).length() > 0;
-			ml = request.getParam(Globals.PARAM_MULTILEVEL).length() > 0;
-			hexWidth = request.getIntParam(PARAM_HEXWIDTH, 32);
 		} else {
 			key = null;
 			type = null;
-			automf = true;
-			deep = true;
-			ml = true;
-			hexWidth = 32;
 		}
-		
+
 		String extraParams = "&hexwidth=" + hexWidth;
 		if (automf) {
 			extraParams += "&automf=checked";
@@ -129,7 +142,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key, int hexWidth, boolean automf, boolean deep, boolean ml) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
-		PageNode page = pluginContext.pageMaker.getPageNode("KeyExplorer", ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("KeyExplorer.PageTitle"), ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -364,6 +377,8 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 					metaBox.addChild("br");
 
 					if ((uri == null) && md.isSplitfile() ) {
+						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Split?key=" + furi.toString(false, false), "reopen as splitfile"));
+						metaBox.addChild("br");
 						metaBox.addChild(new HTMLNode("a", "href", KeyUtilsPlugin.PLUGIN_URI + "/Download?action=splitdownload&key=" + furi.toString(false, false), "split-download"));
 						metaBox.addChild("br");
 					}
@@ -372,9 +387,10 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			if (errors.size() > 0)
 				contentNode.addChild(createErrorBox(errors));
 		}
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", pageNode.generate());
 	}
-	
+
 	private HTMLNode createUriBox(PluginContext pCtx, String uri, int hexWidth, boolean automf, boolean deep, List<String> errors) {
 		InfoboxNode box = pCtx.pageMaker.getInfobox("Explore a freenet key");
 		HTMLNode browseBox = box.outer;
@@ -436,7 +452,6 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						formatter.out().append((char) data[i + offset]);
 					} else
 						formatter.out().append('.');
-
 				}
 				formatter.out().append('\n');
 			}
@@ -448,4 +463,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		return sb.toString();
 	}
 
+	private String i18n(String key) {
+		return _intl.getBase().getString(key);
+	}
 }

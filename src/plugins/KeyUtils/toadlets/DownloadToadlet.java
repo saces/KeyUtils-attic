@@ -21,6 +21,7 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.FreenetURI;
+import freenet.l10n.PluginL10n;
 import freenet.support.HTMLNode;
 import freenet.support.MultiValueTable;
 import freenet.support.api.HTTPRequest;
@@ -35,8 +36,11 @@ import freenet.support.plugins.helpers1.URISanitizer;
  */
 public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 
-	public DownloadToadlet(PluginContext context, KeyExplorerToadlet ket) {
+	private final PluginL10n _intl;
+
+	public DownloadToadlet(PluginContext context, KeyExplorerToadlet ket, PluginL10n intl) {
 		super(context, KeyUtilsPlugin.PLUGIN_URI, "Download", ket);
+		_intl = intl;
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -82,12 +86,12 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 	}
 
 	private void makeErrorPage(ToadletContext ctx, List<String> errors) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("Download.PageTitle"), ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
 		contentNode.addChild(createErrorBox(errors, path(), null, null));
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 501, "OK", outer.generate());
 	}
 
@@ -125,5 +129,9 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	private String i18n(String key) {
+		return _intl.getBase().getString(key);
 	}
 }

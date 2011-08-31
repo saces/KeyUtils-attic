@@ -28,6 +28,7 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.crypt.HashResult;
 import freenet.keys.ClientCHK;
 import freenet.keys.FreenetURI;
+import freenet.l10n.PluginL10n;
 import freenet.node.RequestClient;
 import freenet.node.RequestStarter;
 import freenet.pluginmanager.PluginRespirator;
@@ -44,7 +45,9 @@ import freenet.support.plugins.helpers1.WebInterfaceToadlet;
  *
  */
 public class SplitExplorerToadlet extends WebInterfaceToadlet {
-	
+
+	private final PluginL10n _intl;
+
 	private static abstract class AbstractSnoop implements SnoopMetadata {
 		abstract Metadata getResult();
 	}
@@ -56,6 +59,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		SnoopFirst () {
 		}
 
+		@Override
 		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
 			if (meta.isSplitfile()) {
 				firstSplit = meta;
@@ -77,6 +81,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		SnoopLast () {
 		}
 
+		@Override
 		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
 			if (meta.isSplitfile()) {
 				lastSplit = (Metadata) meta.clone();
@@ -101,6 +106,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			lastLevel = 0;
 		}
 
+		@Override
 		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
 			if (meta.isSplitfile()) {
 				lastSplit = meta;
@@ -111,8 +117,9 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 	}
 
-	public SplitExplorerToadlet(PluginContext context) {
+	public SplitExplorerToadlet(PluginContext context, PluginL10n intl) {
 		super(context, KeyUtilsPlugin.PLUGIN_URI, "Split");
+		_intl = intl;
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -179,7 +186,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key, int level) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("SplitExplorer.PageTitle"), ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -205,12 +212,12 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		contentNode.addChild(uriBox);
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 
 	private void makeSplitPage(ToadletContext ctx, List<String> errors, FreenetURI furi, int level) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("SplitExplorer.PageTitle"), ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -250,7 +257,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 		contentNode.addChild(uriBox);
 		contentNode.addChild(splitBox);
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 
@@ -388,10 +395,9 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		final String dataLengthPrefix;
 		if (md.isCompressed()) {
-			infoContent.addChild("#", "Compressed ("+ md.getCompressionCodec().name + ")");
-			infoContent.addChild("br");
 			infoContent.addChild("#", "Decompressed size: " + md.uncompressedDataLength() + " bytes.");
-			dataLengthPrefix = "Compressed";
+			infoContent.addChild("br");
+			dataLengthPrefix = "Compressed ("+ md.getCompressionCodec().name + ")";
 		} else {
 			dataLengthPrefix = "Uncompressed";
 		}
@@ -506,7 +512,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			snooper = new SnoopFirst();
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
 		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
 		get.setMetaSnoop(snooper);
 
 		try {
@@ -529,7 +535,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		SnoopLevel snooper = new SnoopLevel(level);
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
 		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
 		get.setMetaSnoop(snooper);
 
 		try {
@@ -546,5 +552,9 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			throw new FetchException(FetchException.INVALID_METADATA, "URI does not point to a split file");
 		}
 		return snooper.lastSplit;
+	}
+
+	private String i18n(String key) {
+		return _intl.getBase().getString(key);
 	}
 }

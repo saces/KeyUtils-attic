@@ -60,7 +60,7 @@ import freenet.support.io.BucketTools;
 import freenet.support.io.Closer;
 
 public class KeyExplorerUtils {
-	
+
 	private static volatile boolean logMINOR;
 	private static volatile boolean logDEBUG;
 
@@ -77,6 +77,7 @@ public class KeyExplorerUtils {
 			_bf = bf;
 		}
 
+		@Override
 		public boolean snoopBucket(Bucket data, boolean isMetadata,
 				ObjectContainer container, ClientContext context) {
 			Bucket temp;
@@ -104,7 +105,7 @@ public class KeyExplorerUtils {
 		SnoopGetter snooper = new SnoopGetter(pr.getNode().clientCore.tempBucketFactory);
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
 		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null);
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
 		get.setBucketSnoop(snooper);
 
 		try {
@@ -134,34 +135,43 @@ public class KeyExplorerUtils {
 
 		GetCompletionCallback cb = new GetCompletionCallback() {
 
+			@Override
 			public void onBlockSetFinished(ClientGetState state, ObjectContainer container, ClientContext context) {
 			}
 
+			@Override
 			public void onExpectedMIME(String mime, ObjectContainer container, ClientContext context) {
 			}
 
+			@Override
 			public void onExpectedSize(long size, ObjectContainer container, ClientContext context) {
 			}
 
+			@Override
 			public void onFailure(FetchException e, ClientGetState state, ObjectContainer container, ClientContext context) {
 				fw.onFailure(e, null, container);
 			}
 
+			@Override
 			public void onFinalizedMetadata(ObjectContainer container) {
 			}
 
+			@Override
 			public void onTransition(ClientGetState oldState, ClientGetState newState, ObjectContainer container) {
 			}
 
+			@Override
 			public void onExpectedTopSize(long size, long compressed,
 					int blocksReq, int blocksTotal, ObjectContainer container,
 					ClientContext context) {
 			}
 
+			@Override
 			public void onHashes(HashResult[] hashes,
 					ObjectContainer container, ClientContext context) {
 			}
 
+			@Override
 			public void onSplitfileCompatibilityMode(CompatibilityMode min,
 					CompatibilityMode max, byte[] customSplitfileKey,
 					boolean compressed, boolean bottomLayer,
@@ -169,6 +179,7 @@ public class KeyExplorerUtils {
 					ClientContext context) {
 			}
 
+			@Override
 			public void onSuccess(StreamGenerator streamGenerator,
 					ClientMetadata clientMetadata,
 					List<? extends Compressor> decompressors,
@@ -317,7 +328,7 @@ public class KeyExplorerUtils {
 			decompressors.add(codec);
 		}
 		VerySimpleGetter vsg = new VerySimpleGetter((short) 1, null, (RequestClient) pr.getHLSimpleClient());
-		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, decompressors, clientMetadata, actx, recursionLevel, token,
+		SplitFileFetcher sf = new SplitFileFetcher(metadata, cb, vsg, ctx, deleteFetchContext, true, decompressors, clientMetadata, actx, recursionLevel, token,
 				false, (short) 0, null, pr.getNode().clientCore.clientContext);
 
 		// VerySimpleGetter vsg = new VerySimpleGetter((short) 1, uri,
@@ -484,5 +495,4 @@ public class KeyExplorerUtils {
 		result = BucketTools.toByteArray(splitGet(pluginRespirator, md).asBucket());
 		return result;
 	}
-
 }
