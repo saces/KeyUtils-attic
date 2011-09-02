@@ -39,7 +39,7 @@
 				<attribute name="Bundle-ManifestVersion" value="2" />
 				<attribute name="Bundle-SymbolicName" value="KeyUtils" />
 				<attribute name="Bundle-Version" value="1" />
-				<attribute name="Bundle-Activator" value="saces.KeyUtils.Activator" />
+				<attribute name="Bundle-Activator" value="de.saces.KeyUtils.Activator" />
 				<attribute name="Import-Package" value="org.osgi.framework;version=1.3.0,org.osgi.service.http" />
 			</manifest>
 			<!--
