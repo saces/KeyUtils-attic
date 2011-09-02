@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="KeyUtils" default="bundle" basedir=".">
 
+	<property name="framework.jar.location" location="../concierge/framework/dist/fconcierge.jar"/>
 	<property name="freenet-cvs-snapshot.location" location="../fred/dist/FreenetService.jar"/>
 	<property name="compress.jar.location" location="../foe/FreenetCompress/dist/FreenetCompress.jar"/>
 	<property name="support.jar.location" location="../foe/FreenetSupport/dist/FreenetSupport.jar"/>
@@ -20,13 +21,13 @@
 	<target name="compile" depends="mkdir" >
 		<javac srcdir="${src}" destdir="${build}" debug="on" optimize="on" source="${source-version}" target="${target-version}">
 			<classpath>
+				<pathelement location="${framework.jar.location}"/>
 				<pathelement location="${compress.jar.location}"/>
 				<pathelement location="${support.jar.location}"/>
 				<pathelement location="${freenet-cvs-snapshot.location}"/>
 			</classpath>
 			<include name="**/*.java"/>
 			<exclude name="**/*Test.java"/>
-			<exclude name="saces/KeyUtils/**/*.java"/>
 		</javac>
 	</target>
 
@@ -35,7 +36,6 @@
 				filesetmanifest="skip">
 			<manifest>
 				<attribute name="Plugin-Main-Class" value="plugins.KeyUtils.KeyUtilsPlugin"/>
-				<!-- attribute name="Main-Class" value="ch.ethz.iks.concierge.framework.Framework" / -->
 				<attribute name="Bundle-ManifestVersion" value="2" />
 				<attribute name="Bundle-SymbolicName" value="KeyUtils" />
 				<attribute name="Bundle-Version" value="1" />
