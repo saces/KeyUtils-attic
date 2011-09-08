@@ -23,4 +23,12 @@ public class Version {
 
 	public static final String longVersionString = "0.5.2 " + gitRevision;
 
+	/**
+	 * just prints the version number to standard out. intended to be used
+	 * by build scripts those depends on keyutils
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		System.out.println(version);
+	}
 }
