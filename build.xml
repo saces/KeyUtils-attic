@@ -26,6 +26,7 @@
 		<arg value="describe" />
 		<arg value="--always" />
 		<arg value="--abbrev=4" />
+		<arg value="--dirty" />
 	</exec>
 
 	<condition property="git.revision" value="${git.describe}" else="@unknown@">
@@ -123,15 +124,16 @@
 				<attribute name="Plugin-Main-Class" value="plugins.KeyUtils.KeyUtilsPlugin"/>
 			</manifest>
 			<fileset dir="src/" casesensitive="no">
-				<include name="*.txt"/>
+				<include name="**/*.txt"/>
 			</fileset>
 			<fileset dir="${build}/"/>
+			<fileset dir="rez/" />
 		</jar>
 		<zip destfile="${dist}/KeyUtils-src.zip" filesonly="true" compress="true">
 			<zipfileset dir="."
 				prefix = ""
 				excludes=".*"
-				includes="src/**/* build.xml" />
+				includes="src/**/* rez/**/* build.xml" />
 		</zip>
 	</target>
 

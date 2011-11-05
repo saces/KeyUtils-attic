@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import plugins.KeyUtils.Configuration;
 import plugins.KeyUtils.KeyExplorerUtils;
 import plugins.KeyUtils.KeyUtilsPlugin;
 import freenet.client.FetchException;
@@ -23,6 +24,7 @@ import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.FreenetURI;
+import freenet.l10n.PluginL10n;
 import freenet.support.URLEncoder;
 import freenet.support.HTMLNode;
 import freenet.support.Logger;
@@ -43,8 +45,11 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		Logger.registerClass(SiteExplorerToadlet.class);
 	}
 
-	public SiteExplorerToadlet(PluginContext context) {
+	private final PluginL10n _intl;
+
+	public SiteExplorerToadlet(PluginContext context, PluginL10n intl) {
 		super(context, KeyUtilsPlugin.PLUGIN_URI, "Site");
+		_intl = intl;
 	}
 
 	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException {
@@ -53,16 +58,23 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		String type;
 		boolean deep;
 		boolean ml;
+		if (request.isParameterSet(Globals.PARAM_RECURSIVE)) {
+			deep = request.getParam(Globals.PARAM_RECURSIVE).length() > 0;
+		} else {
+			deep = Configuration.getDeep();
+		}
+		if (request.isParameterSet(Globals.PARAM_MULTILEVEL)) {
+			ml = request.getParam(Globals.PARAM_MULTILEVEL).length() > 0;
+		} else {
+			ml = Configuration.getMultilevel();
+		}
+
 		if (request.isParameterSet(Globals.PARAM_URI)) {
 			key = request.getParam(Globals.PARAM_URI);
 			type = request.getParam(Globals.PARAM_MFTYPE);
-			deep = request.getParam(Globals.PARAM_RECURSIVE).length() > 0;
-			ml = request.getParam(Globals.PARAM_MULTILEVEL).length() > 0;
 		} else {
 			key = null;
 			type = null;
-			deep = true;
-			ml = true;
 		}
 
 		List<String> errors = new LinkedList<String>();
@@ -160,7 +172,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeMainPage(ToadletContext ctx, List<String> errors, String key, boolean deep, boolean ml) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode(KeyUtilsPlugin.PLUGIN_TITLE, ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("SiteExplorer.PageTitle"), ctx);
 		HTMLNode outer = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -191,7 +203,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		contentNode.addChild(uriBox);
-
+		contentNode.addChild(Utils.makeDonateFooter(_intl));
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
 	}
 
@@ -221,7 +233,7 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 	}
 
 	private void makeManifestPage(ToadletContext ctx, List<String> errors, String key, boolean zip, boolean tar, boolean deep, boolean ml) throws ToadletContextClosedException, IOException {
-		PageNode page = pluginContext.pageMaker.getPageNode("KeyExplorer", ctx);
+		PageNode page = pluginContext.pageMaker.getPageNode(i18n("SiteExplorer.PageTitle"), ctx);
 		HTMLNode pageNode = page.outer;
 		HTMLNode contentNode = page.content;
 
@@ -645,5 +657,9 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 
 	private HTMLNode makeTargetCell(Metadata md, String uri) {
 		return makeTargetCell(md, uri, null);
+	}
+
+	private String i18n(String key) {
+		return _intl.getBase().getString(key);
 	}
 }

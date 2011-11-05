@@ -19,8 +19,16 @@ public class Version {
 	 * 
 	 * I have set this to 3000 to allow encoding marketing versions into real versions.
 	 * Long provides plenty of leeway! Toad. */
-	public static final long version = 5009;
+	public static final long version = 5012;
 
-	public static final String longVersionString = "0.5α " + gitRevision;
+	public static final String longVersionString = "0.5.2 " + gitRevision;
 
+	/**
+	 * just prints the version number to standard out. intended to be used
+	 * by build scripts those depends on keyutils
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		System.out.println(version);
+	}
 }
