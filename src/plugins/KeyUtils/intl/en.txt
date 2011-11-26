@@ -1,4 +1,4 @@
-About.PageTitle=About
+About.PageTitle=Key Utility Suite - About
 Config.autoMF=auto manifest
 Config.autoMFLong=open key as manifest/site if possible.
 Config.hexWidth=Hex view width
