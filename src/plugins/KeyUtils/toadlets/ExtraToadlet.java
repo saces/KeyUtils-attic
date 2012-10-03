@@ -80,7 +80,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		String path = normalizePath(request.getPath());
 
 		if (path.startsWith(PATH_DECOMPOSE)) {
-			String key = request.getPartAsString(Globals.PARAM_URI, 1024);
+			String key = request.getPartAsStringFailsafe(Globals.PARAM_URI, 1024);
 
 			if (key == null || (key.trim().length() == 0)) {
 				errors.add("Are you jokingly? URI is empty");
@@ -178,9 +178,9 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		}
 
 		if (path.startsWith(PATH_COMPOSE_CHK)) {
-			String s_crypto = request.getPartAsString(FIELDNAME_CRYPTO_ALGO, 1024);
-			String s_compress = request.getPartAsString(FIELDNAME_COMPRESS_ALGO, 1024);
-			String s_control = request.getPartAsString(FIELDNAME_CONTROL_DOCUMENT, 1024);
+			String s_crypto = request.getPartAsStringFailsafe(FIELDNAME_CRYPTO_ALGO, 1024);
+			String s_compress = request.getPartAsStringFailsafe(FIELDNAME_COMPRESS_ALGO, 1024);
+			String s_control = request.getPartAsStringFailsafe(FIELDNAME_CONTROL_DOCUMENT, 1024);
 
 			// make result box
 			InfoboxNode box = pluginContext.pageMaker.getInfobox("infobox-warning", "Composed an Freenet URI's EXTRA (CHK): ");
@@ -228,10 +228,10 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		}
 
 		if (path.startsWith(PATH_COMPOSE_SSK)) {
-			String s_crypto = request.getPartAsString(FIELDNAME_CRYPTO_ALGO, 1024);
-			String s_hash = request.getPartAsString(FIELDNAME_HASH_ALGO, 1024);
-			String s_type = request.getPartAsString(FIELDNAME_SSK_TYPE, 1024);
-			String s_private = request.getPartAsString(FIELDNAME_SSK_PRIVATE, 1024);
+			String s_crypto = request.getPartAsStringFailsafe(FIELDNAME_CRYPTO_ALGO, 1024);
+			String s_hash = request.getPartAsStringFailsafe(FIELDNAME_HASH_ALGO, 1024);
+			String s_type = request.getPartAsStringFailsafe(FIELDNAME_SSK_TYPE, 1024);
+			String s_private = request.getPartAsStringFailsafe(FIELDNAME_SSK_PRIVATE, 1024);
 
 			// make result box
 			InfoboxNode box = pluginContext.pageMaker.getInfobox("infobox-warning", "Composed an Freenet URI's EXTRA (SSK): ");
@@ -284,7 +284,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 			return;
 		}
 
-		String key = request.getPartAsString(Globals.PARAM_URI, 1024);
+		String key = request.getPartAsStringFailsafe(Globals.PARAM_URI, 1024);
 		makeMainPage(ctx, errors, key);
 	}
 
