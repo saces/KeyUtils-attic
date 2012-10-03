@@ -121,6 +121,8 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 				resultContent.addChild("#", "Crypto algorithm: "+ (extra[1]));
 				if (extra[1] == Key.ALGO_AES_PCFB_256_SHA256)
 					resultContent.addChild("#", " (AES_PCFB_256_SHA256)");
+				else if(extra[1] == Key.ALGO_AES_CTR_256_SHA256)
+					resultContent.addChild("#", " (AES_CTR_256_SHA256)");
 				resultContent.addChild("br");
 
 				if ((extra[2] & 0x02) == 0)
@@ -377,6 +379,7 @@ public class ExtraToadlet extends WebInterfaceToadlet {
 		HTMLNode cryptoselect = new HTMLNode("select", new String[] {"name", "onchange"}, new String[] {"crypto_selector", "document.forms[\"chkExtraForm\"].elements[\"crypto_algo\"].value = this.options[this.options.selectedIndex].value"});
 		cryptoselect.addChild("option", "value", "", "-- select --");
 		cryptoselect.addChild("option", "value", "2", "AES_PCFB_256_SHA256 (2)");
+		cryptoselect.addChild("option", "value", "3", "AES_CTR_256_SHA256 (3)");
 
 		cell.addChild(cryptoselect);
 
