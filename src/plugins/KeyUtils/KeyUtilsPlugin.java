@@ -7,6 +7,7 @@ import plugins.KeyUtils.toadlets.AboutToadlet;
 import plugins.KeyUtils.toadlets.DownloadToadlet;
 import plugins.KeyUtils.toadlets.ExtraToadlet;
 import plugins.KeyUtils.toadlets.FBlobToadlet;
+import plugins.KeyUtils.toadlets.KeyConverterToadlet;
 import plugins.KeyUtils.toadlets.KeyExplorerToadlet;
 import plugins.KeyUtils.toadlets.SiteExplorerToadlet;
 import plugins.KeyUtils.toadlets.SplitExplorerToadlet;
@@ -88,6 +89,8 @@ public class KeyUtilsPlugin implements FredPlugin, FredPluginL10n, FredPluginFCP
 		webInterface.registerVisible(extraToadlet, PLUGIN_CATEGORY, "Menu.ExtraCalculator.title", "Menu.ExtraCalculator.tooltip");
 		FBlobToadlet fblobToadlet = new FBlobToadlet(pluginContext, intl);
 		webInterface.registerVisible(fblobToadlet, PLUGIN_CATEGORY, "Menu.FBlobViewer.title", "Menu.FBlobViewer.tooltip");
+		KeyConverterToadlet keyConverterToadlet = new KeyConverterToadlet(pluginContext, intl);
+		webInterface.registerVisible(keyConverterToadlet, PLUGIN_CATEGORY, "Menu.KeyConverter.title", "Menu.KeyConverter.tooltip");
 		AboutToadlet aboutToadlet = new AboutToadlet(pluginContext, intl);
 		webInterface.registerVisible(aboutToadlet, PLUGIN_CATEGORY, "Menu.About.title", "Menu.About.tooltip");
 

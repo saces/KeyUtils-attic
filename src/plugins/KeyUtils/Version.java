@@ -21,7 +21,7 @@ public class Version {
 	 * Long provides plenty of leeway! Toad. */
 	public static final long version = 5013;
 
-	public static final String longVersionString = "0.5.2 " + gitRevision;
+	public static final String longVersionString = "0.5.3 " + gitRevision;
 
 	/**
 	 * just prints the version number to standard out. intended to be used
