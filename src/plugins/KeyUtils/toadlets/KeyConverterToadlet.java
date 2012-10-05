@@ -261,7 +261,7 @@ public class KeyConverterToadlet extends WebInterfaceToadlet {
 		InfoboxNode box = pluginContext.pageMaker.getInfobox("Convert a file key of any type to CHK with optional filename changing");
 		HTMLNode content = box.content;
 
-		content.addChild("#", "Fetches the top-level metadata block of the specified file key, creates a new single-file manifest for it using the specified filename, inserts the manifest back into Freenet as CHK and returns a new file key. Any redundant redirects are removed. The file can be reinserted to the gotten CHK key in the usual way if the correct crypto key is specified as an insert option.");
+		content.addChild("#", "Fetches the top-level metadata block of the specified file key, creates a new single-file manifest for it using the specified filename, inserts the manifest back into Freenet as CHK and returns a new file key. Any redundant redirects are removed. The file can be reinserted to the gotten CHK key in the usual way if the correct crypto key is specified as an insert option. However the plugin doesn't touch a mime type. So if you change a file extension, you will likely get a key the file cannot be reinserted to in the usual way.");
 		content.addChild("br");
 		content.addChild("br");
 
