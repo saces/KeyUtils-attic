@@ -14,6 +14,8 @@ import plugins.KeyUtils.KeyUtilsPlugin;
 import freenet.client.FetchException;
 import freenet.client.HighLevelSimpleClientImpl;
 import freenet.client.InsertBlock;
+import freenet.client.InsertContext;
+import freenet.client.InsertContext.CompatibilityMode;
 import freenet.client.InsertException;
 import freenet.client.Metadata;
 import freenet.client.Metadata.SimpleManifestComposer;
@@ -25,6 +27,7 @@ import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.ClientCHK;
 import freenet.keys.FreenetURI;
+import freenet.keys.Key;
 import freenet.l10n.PluginL10n;
 import freenet.node.RequestStarter;
 import freenet.support.HTMLNode;
@@ -204,6 +207,9 @@ public class KeyConverterToadlet extends WebInterfaceToadlet {
 		if (metadata.getCustomSplitfileKey() != null)
 			cryptoKey = metadata.getCustomSplitfileKey();
 
+		// Determine the compatibility mode
+		CompatibilityMode compatMode = determineCompatibilityMode(metadata);
+
 		// Create a new manifest
 		SimpleManifestComposer smc = new SimpleManifestComposer();
 		smc.addItem(newFilename, metadata);
@@ -216,8 +222,10 @@ public class KeyConverterToadlet extends WebInterfaceToadlet {
 			InsertBlock block = new InsertBlock(metadataBucket, null, FreenetURI.EMPTY_CHK_URI);
 			assert pluginContext.hlsc instanceof HighLevelSimpleClientImpl;
 			HighLevelSimpleClientImpl hlsc = (HighLevelSimpleClientImpl)pluginContext.hlsc;
+			InsertContext insertContext = hlsc.getInsertContext(true);
+			insertContext.setCompatibilityMode(compatMode);
 			newFileKey = hlsc.insert(block, getKeyOnly, newFilename, true, RequestStarter.INTERACTIVE_PRIORITY_CLASS,
-					hlsc.getInsertContext(true), cryptoKey);
+					insertContext, cryptoKey);
 		} catch (IOException e) {
 			errors.add("IO error: " + e.getMessage());
 		} catch (MetadataUnresolvedException e) {
@@ -230,6 +238,21 @@ public class KeyConverterToadlet extends WebInterfaceToadlet {
 			return null;
 
 		return newFileKey;
+	}
+
+	/**
+	 * Determines the compatibility mode suitable for insertion of the top block.
+	 * Normally this should be done by the node, but that part of code is often
+	 * broken, so we don't rely on it.
+	 */
+	private CompatibilityMode determineCompatibilityMode(Metadata metadata) {
+		if (metadata.getParsedVersion() == 0)
+			return CompatibilityMode.COMPAT_1251;
+		byte cryptoAlgorithm = metadata.isSplitfile() ? metadata.getSplitfileCryptoAlgorithm() :
+				ClientCHK.getCryptoAlgorithmFromExtra(metadata.getSingleTarget().getExtra());
+		if (cryptoAlgorithm == Key.ALGO_AES_PCFB_256_SHA256)
+			return CompatibilityMode.COMPAT_1255;
+		return CompatibilityMode.COMPAT_CURRENT;
 	}
 
 	private HTMLNode createFormBox(String origFileKey, String newFilename, boolean getKeyOnly) {
