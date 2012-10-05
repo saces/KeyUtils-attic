@@ -208,7 +208,7 @@ public class KeyConverterToadlet extends WebInterfaceToadlet {
 			cryptoKey = metadata.getCustomSplitfileKey();
 
 		// Determine the compatibility mode
-		CompatibilityMode compatMode = determineCompatibilityMode(metadata);
+		CompatibilityMode compatMode = metadata.guessCompatibilityMode();
 
 		// Create a new manifest
 		SimpleManifestComposer smc = new SimpleManifestComposer();
@@ -238,21 +238,6 @@ public class KeyConverterToadlet extends WebInterfaceToadlet {
 			return null;
 
 		return newFileKey;
-	}
-
-	/**
-	 * Determines the compatibility mode suitable for insertion of the top block.
-	 * Normally this should be done by the node, but that part of code is often
-	 * broken, so we don't rely on it.
-	 */
-	private CompatibilityMode determineCompatibilityMode(Metadata metadata) {
-		if (metadata.getParsedVersion() == 0)
-			return CompatibilityMode.COMPAT_1251;
-		byte cryptoAlgorithm = metadata.isSplitfile() ? metadata.getSplitfileCryptoAlgorithm() :
-				ClientCHK.getCryptoAlgorithmFromExtra(metadata.getSingleTarget().getExtra());
-		if (cryptoAlgorithm == Key.ALGO_AES_PCFB_256_SHA256)
-			return CompatibilityMode.COMPAT_1255;
-		return CompatibilityMode.COMPAT_CURRENT;
 	}
 
 	private HTMLNode createFormBox(String origFileKey, String newFilename, boolean getKeyOnly) {
