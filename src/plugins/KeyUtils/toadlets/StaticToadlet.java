@@ -75,7 +75,7 @@ public class StaticToadlet extends InvisibleWebInterfaceToadlet {
 		fileInputStream.close();
 		os.close();
 
-		URL url = getClass().getResource(resourcePathPrefix+path);
+		URL url = getClass().getResource(fn);
 		Date mTime = getUrlMTime(url);
 
 		String mime = (mimeType != null) ? (mimeType) : (DefaultMIMETypes.guessMIMEType(path, false));
