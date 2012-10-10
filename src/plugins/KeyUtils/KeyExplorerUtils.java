@@ -140,7 +140,7 @@ public class KeyExplorerUtils {
 			}
 
 			@Override
-			public void onExpectedMIME(String mime, ObjectContainer container, ClientContext context) {
+			public void onExpectedMIME(ClientMetadata metadata, ObjectContainer container, ClientContext context) {
 			}
 
 			@Override
