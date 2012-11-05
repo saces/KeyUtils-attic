@@ -125,7 +125,7 @@ public class KeyConverterToadlet extends WebInterfaceToadlet {
 			errors.add("Original file key has wrong format");
 		}
 
-		if (!newFilename.equals(FileUtil.sanitizeFileName(newFilename, OperatingSystem.All, "")))
+		if (!newFilename.equals(FileUtil.sanitizeFileName(newFilename, OperatingSystem.Unknown, "")))
 			errors.add("New filename is not valid");
 
 		if (!errors.isEmpty())
