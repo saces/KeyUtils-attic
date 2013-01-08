@@ -11,6 +11,7 @@ import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Arrays;
 
 import plugins.KeyUtils.Configuration;
 import plugins.KeyUtils.GetResult;
@@ -29,6 +30,8 @@ import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.crypt.HashResult;
 import freenet.keys.FreenetURI;
+import freenet.keys.BaseClientKey;
+import freenet.keys.ClientCHK;
 import freenet.l10n.PluginL10n;
 import freenet.support.HexUtil;
 import freenet.support.HTMLNode;
@@ -340,6 +343,22 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						if (splitfileCryptoKey != null) {
 							metaBox.addChild("#", "Splitfile CryptoKey\u00a0=\u00a0" + HexUtil.bytesToHex(splitfileCryptoKey));
 							metaBox.addChild("br");
+						}
+					}
+					else {
+						FreenetURI uri = md.getSingleTarget();
+						if (uri != null && md.getParsedVersion() > 0) {
+							byte [] defaultCryptoKey = null;
+							byte [] uriCryptoKey = uri.getCryptoKey();
+							try {
+								defaultCryptoKey = md.getCryptoKey(md.getHashes());
+							} catch(IllegalArgumentException ex) {
+							    // Ignore
+							}
+							if (defaultCryptoKey == null || !Arrays.equals(defaultCryptoKey, uriCryptoKey)) {
+								metaBox.addChild("#", "Splitfile CryptoKey (synthesized/guessed)\u00a0=\u00a0" + HexUtil.bytesToHex(uri.getCryptoKey()));
+								metaBox.addChild("br");
+							}
 						}
 					}
 
