@@ -330,7 +330,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						metaBox.addChild("#", "Hashes:");
 						metaBox.addChild("br");
 						for (final HashResult hash : hashes) {
-							metaBox.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + HexUtil.bytesToHex(hash.result));
+							metaBox.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + hash.hashAsHex());
 							metaBox.addChild("br");
 						}
 					}

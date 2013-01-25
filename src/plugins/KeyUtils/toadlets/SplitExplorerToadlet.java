@@ -388,7 +388,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			infoContent.addChild("#", "Hashes:");
 			infoContent.addChild("br");
 			for (final HashResult hash : hashes) {
-				infoContent.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + HexUtil.bytesToHex(hash.result));
+				infoContent.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + hash.hashAsHex());
 				infoContent.addChild("br");
 			}
 		}
