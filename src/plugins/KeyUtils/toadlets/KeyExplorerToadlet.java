@@ -58,7 +58,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		_intl = intl;
 	}
 
-	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
+	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException {
 		if (!normalizePath(request.getPath()).equals("/")) {
 			sendErrorPage(ctx, 404, "Not found", "the path '"+uri+"' was not found");
 			return;
@@ -110,16 +110,20 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			hexWidth = 32;
 		}
 
-		if (Globals.MFTYPE_ZIP.equals(type)) {
-			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
+		try {
+			if (Globals.MFTYPE_ZIP.equals(type)) {
+				throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
+			}
+			if (Globals.MFTYPE_TAR.equals(type)) {
+				throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + key + extraParams);
+			}
+			if (Globals.MFTYPE_SIMPLE.equals(type)) {
+				throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + key + extraParams);
+			}
+			makeMainPage(ctx, errors, key, hexWidth, automf, deep, ml);
+		} catch (URISyntaxException e) {
+			this.sendErrorPage(ctx, "Internal Server Error", "Impossible URISyntaxException", e);
 		}
-		if (Globals.MFTYPE_TAR.equals(type)) {
-			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + key + extraParams);
-		}
-		if (Globals.MFTYPE_SIMPLE.equals(type)) {
-			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + key + extraParams);
-		}
-		makeMainPage(ctx, errors, key, hexWidth, automf, deep, ml);
 	}
 
 	public void handleMethodPOST(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
