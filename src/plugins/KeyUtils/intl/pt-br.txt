@@ -5,6 +5,7 @@ Config.hexWidth=Largura da visualização em hexadecimal
 Config.hexWidthLong=Colunas para a visualização do conteúdo em hexadecimal
 Config.multilevel=analisar em metadados de múltiplos níveis
 Config.multilevelLong=
+Config.recursive=analisar manifesto recursivo
 Config.recursiveLong=isto geralmente inclui buscas adicionais
 ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.label=Utilitário de chaves
 ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.tooltip=Especificações pré-definidas para o Utilitário de chaves
