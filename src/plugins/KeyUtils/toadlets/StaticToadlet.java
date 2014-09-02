@@ -80,7 +80,7 @@ public class StaticToadlet extends InvisibleWebInterfaceToadlet {
 
 		String mime = (mimeType != null) ? (mimeType) : (DefaultMIMETypes.guessMIMEType(path, false));
 
-		ctx.sendReplyHeaders(200, "OK", null, mime, data.size(), mTime);
+		ctx.sendReplyHeadersStatic(200, "OK", null, mime, data.size(), mTime);
 		ctx.writeData(data);
 	}
 
