@@ -35,6 +35,7 @@ import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.io.FileUtil;
 import freenet.support.io.FileUtil.OperatingSystem;
+import freenet.support.io.RandomAccessBucket;
 import freenet.support.plugins.helpers1.PluginContext;
 import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
@@ -218,13 +219,14 @@ public class KeyConverterToadlet extends WebInterfaceToadlet {
 		// and insert it
 		FreenetURI newFileKey = null;
 		try {
-			Bucket metadataBucket = metadata.toBucket(pluginContext.clientCore.tempBucketFactory);
+			RandomAccessBucket metadataBucket = metadata.toBucket(pluginContext.clientCore.tempBucketFactory);
 			InsertBlock block = new InsertBlock(metadataBucket, null, FreenetURI.EMPTY_CHK_URI);
 			assert pluginContext.hlsc instanceof HighLevelSimpleClientImpl;
 			HighLevelSimpleClientImpl hlsc = (HighLevelSimpleClientImpl)pluginContext.hlsc;
 			InsertContext insertContext = hlsc.getInsertContext(true);
 			insertContext.setCompatibilityMode(compatMode);
-			newFileKey = hlsc.insert(block, getKeyOnly, newFilename, true, RequestStarter.INTERACTIVE_PRIORITY_CLASS,
+			insertContext.getCHKOnly = getKeyOnly;
+			newFileKey = hlsc.insert(block, newFilename, true, RequestStarter.INTERACTIVE_PRIORITY_CLASS,
 					insertContext, cryptoKey);
 		} catch (IOException e) {
 			errors.add("IO error: " + e.getMessage());

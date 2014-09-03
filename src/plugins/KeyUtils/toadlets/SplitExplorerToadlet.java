@@ -15,6 +15,7 @@ import com.db4o.ObjectContainer;
 
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
+import freenet.client.FetchException.FetchExceptionMode;
 import freenet.client.FetchWaiter;
 import freenet.client.Metadata;
 import freenet.client.async.ClientContext;
@@ -60,7 +61,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		@Override
-		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
+		public boolean snoopMetadata(Metadata meta, ClientContext context) {
 			if (meta.isSplitfile()) {
 				firstSplit = meta;
 				return true;
@@ -82,7 +83,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		@Override
-		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
+		public boolean snoopMetadata(Metadata meta, ClientContext context) {
 			if (meta.isSplitfile()) {
 				lastSplit = (Metadata) meta.clone();
 			}
@@ -107,7 +108,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		@Override
-		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
+		public boolean snoopMetadata(Metadata meta, ClientContext context) {
 			if (meta.isSplitfile()) {
 				lastSplit = meta;
 				lastLevel++;
@@ -410,7 +411,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		SplitFileSegmentKeys[] segments;
 		try {
-			segments = md .grabSegmentKeys(null);
+			segments = md .grabSegmentKeys();
 		} catch (FetchException e) {
 			Logger.error(this, "Internal failures: "+e.getMessage(), e);
 			infoContent.addChild("#", "Error: Internal failure while decoding data. Try again (refresh the page).");
@@ -511,12 +512,12 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		else
 			snooper = new SnoopFirst();
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
-		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
+		FetchWaiter fw = new FetchWaiter((RequestClient)pr.getHLSimpleClient());
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, null, null, null);
 		get.setMetaSnoop(snooper);
 
 		try {
-			get.start(null, pr.getNode().clientCore.clientContext);
+			get.start(pr.getNode().clientCore.clientContext);
 			fw.waitForCompletion();
 		} catch (FetchException e) {
 			if (snooper.getResult() == null) {
@@ -526,7 +527,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 		Metadata result = snooper.getResult();
 		if (result == null) {
-			throw new FetchException(FetchException.INVALID_METADATA, "URI does not point to a split file");
+			throw new FetchException(FetchExceptionMode.INVALID_METADATA, "URI does not point to a split file");
 		}
 		return result;
 	}
@@ -534,12 +535,12 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	private Metadata splitGet(PluginRespirator pr, FreenetURI uri, int level) throws FetchException {
 		SnoopLevel snooper = new SnoopLevel(level);
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
-		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
+		FetchWaiter fw = new FetchWaiter((RequestClient)pr.getHLSimpleClient());
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, null, null, null);
 		get.setMetaSnoop(snooper);
 
 		try {
-			get.start(null, pr.getNode().clientCore.clientContext);
+			get.start(pr.getNode().clientCore.clientContext);
 			fw.waitForCompletion();
 		} catch (FetchException e) {
 			if (snooper.lastSplit == null) {
@@ -549,7 +550,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 		Metadata result = snooper.lastSplit;
 		if (result == null) {
-			throw new FetchException(FetchException.INVALID_METADATA, "URI does not point to a split file");
+			throw new FetchException(FetchExceptionMode.INVALID_METADATA, "URI does not point to a split file");
 		}
 		return snooper.lastSplit;
 	}
