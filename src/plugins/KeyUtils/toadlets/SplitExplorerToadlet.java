@@ -11,13 +11,12 @@ import java.util.List;
 
 import plugins.KeyUtils.KeyUtilsPlugin;
 
-import com.db4o.ObjectContainer;
-
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
 import freenet.client.FetchException.FetchExceptionMode;
 import freenet.client.FetchWaiter;
 import freenet.client.Metadata;
+import freenet.client.Metadata.SplitfileAlgorithm;
 import freenet.client.async.ClientContext;
 import freenet.client.async.ClientGetter;
 import freenet.client.async.SnoopMetadata;
@@ -272,13 +271,13 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode infoContent = iBox.content;
 		infoContent.addChild("#", "Split file type: ");
 
-		short type = md.getSplitfileType();
+		SplitfileAlgorithm type = md.getSplitfileType();
 		int dataBlocksPerSegment = -1;
 		int checkBlocksPerSegment = -1;
 
 		switch (type) {
-		case Metadata.SPLITFILE_NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
-		case Metadata.SPLITFILE_ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
+		case NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
+		case ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
 		default: infoContent.addChild("#", "<unknown>");
 		}
 		infoContent.addChild("#", "\u00a0("+type+")");
@@ -286,7 +285,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		browseContent.addChild(infoBox);
 
-		if (type == Metadata.SPLITFILE_ONION_STANDARD) {
+		if (type == SplitfileAlgorithm.ONION_STANDARD) {
 			byte[] params = md.splitfileParams();
 			if((params == null) || (params.length < 8))
 				infoContent.addChild("#", "Error: No splitfile params!");
@@ -302,7 +301,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			}
 			browseContent.addChild(createSegmentedBoxV0(pCtx, "data", md.getSplitfileDataKeys(), dataBlocksPerSegment));
 			browseContent.addChild(createSegmentedBoxV0(pCtx, "check", md.getSplitfileCheckKeys(), checkBlocksPerSegment));
-		} else if (type == Metadata.SPLITFILE_NONREDUNDANT) {
+		} else if (type == SplitfileAlgorithm.NONREDUNDANT) {
 			browseContent.addChild(createSegmentedBoxV0(pCtx, "data", md.getSplitfileDataKeys(), -1));
 		}
 		return browseBox;
@@ -351,11 +350,11 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		infoContent.addChild("#", "Split file type: ");
 
-		short type = md.getSplitfileType();
+		SplitfileAlgorithm type = md.getSplitfileType();
 
 		switch (type) {
-		case Metadata.SPLITFILE_NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
-		case Metadata.SPLITFILE_ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
+		case NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
+		case ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
 		default: infoContent.addChild("#", "<unknown>");
 		}
 		infoContent.addChild("#", "\u00a0("+type+")");
@@ -428,7 +427,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		infoContent.addChild("#", "Segment count: " + segments.length);
 		infoContent.addChild("br");
 
-		if (type == Metadata.SPLITFILE_ONION_STANDARD) {
+		if (type == SplitfileAlgorithm.ONION_STANDARD) {
 			infoContent.addChild("#", "Data blocks per segment: " + md.getDataBlocksPerSegment());
 			infoContent.addChild("br");
 			infoContent.addChild("#", "Check blocks per segment: " + md.getCheckBlocksPerSegment());
@@ -436,7 +435,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			for (int i=0;i<segments.length;i++) {
 				browseContent.addChild(createSegmentedBoxV1(pCtx, i, segments[i]));
 			}
-		} else if (type == Metadata.SPLITFILE_NONREDUNDANT) {
+		} else if (type == SplitfileAlgorithm.NONREDUNDANT) {
 			infoContent.addChild("#", "Data blocks per segment: " + md.getDataBlocksPerSegment());
 			infoContent.addChild("br");
 			for (int i=0;i<segments.length;i++) {

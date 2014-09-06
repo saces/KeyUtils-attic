@@ -33,9 +33,9 @@ import freenet.node.RequestStarter;
 import freenet.support.HTMLNode;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
+import freenet.support.api.RandomAccessBucket;
 import freenet.support.io.FileUtil;
 import freenet.support.io.FileUtil.OperatingSystem;
-import freenet.support.io.RandomAccessBucket;
 import freenet.support.plugins.helpers1.PluginContext;
 import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 

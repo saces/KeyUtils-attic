@@ -20,9 +20,6 @@ import java.util.zip.ZipInputStream;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 
-import com.db4o.ObjectContainer;
-
-import freenet.client.ArchiveContext;
 import freenet.client.ClientMetadata;
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
@@ -37,7 +34,6 @@ import freenet.client.async.ClientContext;
 import freenet.client.async.ClientGetState;
 import freenet.client.async.ClientGetWorkerThread;
 import freenet.client.async.ClientGetter;
-import freenet.client.async.ManifestElement;
 import freenet.client.async.GetCompletionCallback;
 import freenet.client.async.KeyListenerConstructionException;
 import freenet.client.async.SnoopBucket;
@@ -52,6 +48,7 @@ import freenet.pluginmanager.PluginRespirator;
 import freenet.support.Logger;
 import freenet.support.api.Bucket;
 import freenet.support.api.BucketFactory;
+import freenet.support.api.ManifestElement;
 import freenet.support.compress.CompressionOutputSizeException;
 import freenet.support.compress.Compressor;
 import freenet.support.compress.DecompressorThreadManager;
@@ -157,7 +154,7 @@ public class KeyExplorerUtils {
 			}
 
 			@Override
-			public void onTransition(ClientGetState oldState, ClientGetState newState) {
+			public void onTransition(ClientGetState oldState, ClientGetState newState, ClientContext context) {
 			}
 
 			@Override

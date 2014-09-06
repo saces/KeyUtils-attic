@@ -19,6 +19,7 @@ import plugins.KeyUtils.KeyExplorerUtils;
 import plugins.KeyUtils.KeyUtilsPlugin;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
+import freenet.client.InsertContext.CompatibilityMode;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.client.ArchiveManager.ARCHIVE_TYPE;
@@ -30,8 +31,6 @@ import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
 import freenet.crypt.HashResult;
 import freenet.keys.FreenetURI;
-import freenet.keys.BaseClientKey;
-import freenet.keys.ClientCHK;
 import freenet.l10n.PluginL10n;
 import freenet.support.HexUtil;
 import freenet.support.HTMLNode;
@@ -312,7 +311,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 
 					metaBox.addChild("br");
 
-					if (md.topCompatibilityMode != 0) {
+					if (md.topCompatibilityMode != CompatibilityMode.COMPAT_UNKNOWN) {
 						metaBox.addChild("#", "Compatibility mode: " + md.getTopCompatibilityMode().toString());
 						metaBox.addChild("br");
 					}
@@ -355,7 +354,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 							byte [] defaultCryptoKey = null;
 							byte [] uriCryptoKey = uri.getCryptoKey();
 							try {
-								defaultCryptoKey = md.getCryptoKey(md.getHashes());
+								defaultCryptoKey = Metadata.getCryptoKey(md.getHashes());
 							} catch(IllegalArgumentException ex) {
 							    // Ignore
 							}
