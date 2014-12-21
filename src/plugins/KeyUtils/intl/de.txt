@@ -25,7 +25,12 @@ Menu.KeyConverter.title=Schlüssel-Konverter
 Menu.KeyConverter.tooltip=Ein Dateischlüssel in CHK umwandeln
 Menu.KeyExplorer.title=Schlüssel-Explorer
 Menu.KeyExplorer.tooltip=Eine Freenet URI untersuchen
+Menu.SiteExplorer.title=Seiten-Explorer
 Menu.SiteExplorer.tooltip=Ein Site-Manifest untersuchen
+Menu.SplitExplorer.title=Geteilter Explorer
+Menu.SplitExplorer.tooltip=Durchsuche eine split Datei
 Plugin.Category.tooltip=Werkzeugkasten zum Debuggen von Freenet URis, etc.
 plugins.KeyUtils.KeyUtilsPlugin=KeyUtils Voreinstellungen
+SiteExplorer.PageTitle=Key Utility Suite - Seiten-Explorer
+SplitExplorer.PageTitle=Key Utility Suite - Split Explorer
 End
