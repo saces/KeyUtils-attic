@@ -6,6 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/orbit"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/FreenetCompress"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/FreenetSupport"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/concierge-framework"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/org.eclipse.concierge"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
