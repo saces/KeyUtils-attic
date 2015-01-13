@@ -15,12 +15,17 @@ public class Version {
 	/** Version number of the plugin for getRealVersion(). Increment this on making
 	 * a major change, a significant bugfix etc. These numbers are used in auto-update 
 	 * etc, at a minimum any build inserted into auto-update should have a unique 
-	 * version.
-	 * 
-	 * I have set this to 3000 to allow encoding marketing versions into real versions.
-	 * Long provides plenty of leeway! Toad. */
-	public static final long version = 5011;
+	 * version. */
+	public static final long version = 5024;
 
-	public static final String longVersionString = "0.5.2 " + gitRevision;
+	public static final String longVersionString = "0.5.3 " + gitRevision;
 
+	/**
+	 * just prints the version number to standard out. intended to be used
+	 * by build scripts those depends on keyutils
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		System.out.println(version);
+	}
 }

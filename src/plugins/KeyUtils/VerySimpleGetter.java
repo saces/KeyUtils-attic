@@ -3,14 +3,14 @@
  * http://www.gnu.org/ for further details of the GPL. */
 package plugins.KeyUtils;
 
-import com.db4o.ObjectContainer;
-
+import freenet.client.async.ClientBaseCallback;
 import freenet.client.async.ClientContext;
 import freenet.client.async.ClientGetState;
 import freenet.client.async.ClientRequester;
 import freenet.keys.FreenetURI;
 import freenet.node.RequestClient;
 import freenet.support.Logger;
+import freenet.support.io.ResumeFailedException;
 
 /**
  * @author saces
@@ -25,6 +25,26 @@ public class VerySimpleGetter extends ClientRequester {
 	}
 
 	private FreenetURI uri;
+	
+	private static class FakeCallback implements ClientBaseCallback {
+	    
+	    FakeCallback(RequestClient client) {
+	        this.client = client;
+	    }
+	    
+	    final RequestClient client;
+
+        @Override
+        public void onResume(ClientContext context) throws ResumeFailedException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public RequestClient getRequestClient() {
+            return client;
+        }
+	    
+	}
 
 	/**
 	 * @param priorityclass 
@@ -34,7 +54,7 @@ public class VerySimpleGetter extends ClientRequester {
 	 * 
 	 */
 	public VerySimpleGetter(short priorityclass, FreenetURI uri2, RequestClient client2) {
-		super(priorityclass, client2);
+		super(priorityclass, new FakeCallback(client2));
 		uri = uri2;
 	}
 	
@@ -50,23 +70,30 @@ public class VerySimpleGetter extends ClientRequester {
 	}
 
 	@Override
-	public void cancel(ObjectContainer container, ClientContext context) {
+	public void cancel(ClientContext context) {
 		Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
 	@Override
-	public void notifyClients(ObjectContainer container, ClientContext context) {
+	protected void innerNotifyClients(ClientContext context) {
 		// progress, ignore Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
 	@Override
-	public void onTransition(ClientGetState oldState, ClientGetState newState, ObjectContainer container) {
+	public void onTransition(ClientGetState oldState, ClientGetState newState,
+			ClientContext context) {
 		Logger.error(this, "TODO?", new Error("TODO?"));
 	}
 
 	@Override
-	protected void innerToNetwork(ObjectContainer container, ClientContext context) {
+	protected void innerToNetwork(ClientContext context) {
 		if (logDEBUG) Logger.debug(this, "Request goes out to network now.");
+	}
+
+	@Override
+	protected ClientBaseCallback getCallback() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

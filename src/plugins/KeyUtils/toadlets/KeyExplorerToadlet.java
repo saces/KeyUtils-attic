@@ -11,6 +11,7 @@ import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Arrays;
 
 import plugins.KeyUtils.Configuration;
 import plugins.KeyUtils.GetResult;
@@ -18,6 +19,7 @@ import plugins.KeyUtils.KeyExplorerUtils;
 import plugins.KeyUtils.KeyUtilsPlugin;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
+import freenet.client.InsertContext.CompatibilityMode;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.client.ArchiveManager.ARCHIVE_TYPE;
@@ -55,7 +57,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 		_intl = intl;
 	}
 
-	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
+	public void handleMethodGET(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException {
 		if (!normalizePath(request.getPath()).equals("/")) {
 			sendErrorPage(ctx, 404, "Not found", "the path '"+uri+"' was not found");
 			return;
@@ -107,16 +109,20 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			hexWidth = 32;
 		}
 
-		if (Globals.MFTYPE_ZIP.equals(type)) {
-			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
+		try {
+			if (Globals.MFTYPE_ZIP.equals(type)) {
+				throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=ZIPmanifest&key=" + key + extraParams);
+			}
+			if (Globals.MFTYPE_TAR.equals(type)) {
+				throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + key + extraParams);
+			}
+			if (Globals.MFTYPE_SIMPLE.equals(type)) {
+				throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + key + extraParams);
+			}
+			makeMainPage(ctx, errors, key, hexWidth, automf, deep, ml);
+		} catch (URISyntaxException e) {
+			this.sendErrorPage(ctx, "Internal Server Error", "Impossible URISyntaxException", e);
 		}
-		if (Globals.MFTYPE_TAR.equals(type)) {
-			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=TARmanifest&key=" + key + extraParams);
-		}
-		if (Globals.MFTYPE_SIMPLE.equals(type)) {
-			throw new RedirectException(KeyUtilsPlugin.PLUGIN_URI + "/Site/?mftype=simplemanifest&key=" + key + extraParams);
-		}
-		makeMainPage(ctx, errors, key, hexWidth, automf, deep, ml);
 	}
 
 	public void handleMethodPOST(URI uri, HTTPRequest request, ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
@@ -305,7 +311,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 
 					metaBox.addChild("br");
 
-					if (md.topCompatibilityMode != 0) {
+					if (md.topCompatibilityMode != CompatibilityMode.COMPAT_UNKNOWN) {
 						metaBox.addChild("#", "Compatibility mode: " + md.getTopCompatibilityMode().toString());
 						metaBox.addChild("br");
 					}
@@ -327,7 +333,7 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						metaBox.addChild("#", "Hashes:");
 						metaBox.addChild("br");
 						for (final HashResult hash : hashes) {
-							metaBox.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + HexUtil.bytesToHex(hash.result));
+							metaBox.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + hash.hashAsHex());
 							metaBox.addChild("br");
 						}
 					}
@@ -340,6 +346,22 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 						if (splitfileCryptoKey != null) {
 							metaBox.addChild("#", "Splitfile CryptoKey\u00a0=\u00a0" + HexUtil.bytesToHex(splitfileCryptoKey));
 							metaBox.addChild("br");
+						}
+					}
+					else {
+						FreenetURI uri = md.getSingleTarget();
+						if (uri != null && md.getParsedVersion() > 0) {
+							byte [] defaultCryptoKey = null;
+							byte [] uriCryptoKey = uri.getCryptoKey();
+							try {
+								defaultCryptoKey = Metadata.getCryptoKey(md.getHashes());
+							} catch(IllegalArgumentException ex) {
+							    // Ignore
+							}
+							if (defaultCryptoKey == null || !Arrays.equals(defaultCryptoKey, uriCryptoKey)) {
+								metaBox.addChild("#", "Splitfile CryptoKey (synthesized/guessed)\u00a0=\u00a0" + HexUtil.bytesToHex(uri.getCryptoKey()));
+								metaBox.addChild("br");
+							}
 						}
 					}
 

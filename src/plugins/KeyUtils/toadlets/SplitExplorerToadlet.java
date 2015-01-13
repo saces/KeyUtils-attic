@@ -11,12 +11,12 @@ import java.util.List;
 
 import plugins.KeyUtils.KeyUtilsPlugin;
 
-import com.db4o.ObjectContainer;
-
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
+import freenet.client.FetchException.FetchExceptionMode;
 import freenet.client.FetchWaiter;
 import freenet.client.Metadata;
+import freenet.client.Metadata.SplitfileAlgorithm;
 import freenet.client.async.ClientContext;
 import freenet.client.async.ClientGetter;
 import freenet.client.async.SnoopMetadata;
@@ -60,7 +60,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		@Override
-		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
+		public boolean snoopMetadata(Metadata meta, ClientContext context) {
 			if (meta.isSplitfile()) {
 				firstSplit = meta;
 				return true;
@@ -82,7 +82,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		@Override
-		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
+		public boolean snoopMetadata(Metadata meta, ClientContext context) {
 			if (meta.isSplitfile()) {
 				lastSplit = (Metadata) meta.clone();
 			}
@@ -107,7 +107,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 
 		@Override
-		public boolean snoopMetadata(Metadata meta, ObjectContainer container, ClientContext context) {
+		public boolean snoopMetadata(Metadata meta, ClientContext context) {
 			if (meta.isSplitfile()) {
 				lastSplit = meta;
 				lastLevel++;
@@ -271,13 +271,13 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		HTMLNode infoContent = iBox.content;
 		infoContent.addChild("#", "Split file type: ");
 
-		short type = md.getSplitfileType();
+		SplitfileAlgorithm type = md.getSplitfileType();
 		int dataBlocksPerSegment = -1;
 		int checkBlocksPerSegment = -1;
 
 		switch (type) {
-		case Metadata.SPLITFILE_NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
-		case Metadata.SPLITFILE_ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
+		case NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
+		case ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
 		default: infoContent.addChild("#", "<unknown>");
 		}
 		infoContent.addChild("#", "\u00a0("+type+")");
@@ -285,7 +285,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		browseContent.addChild(infoBox);
 
-		if (type == Metadata.SPLITFILE_ONION_STANDARD) {
+		if (type == SplitfileAlgorithm.ONION_STANDARD) {
 			byte[] params = md.splitfileParams();
 			if((params == null) || (params.length < 8))
 				infoContent.addChild("#", "Error: No splitfile params!");
@@ -301,7 +301,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			}
 			browseContent.addChild(createSegmentedBoxV0(pCtx, "data", md.getSplitfileDataKeys(), dataBlocksPerSegment));
 			browseContent.addChild(createSegmentedBoxV0(pCtx, "check", md.getSplitfileCheckKeys(), checkBlocksPerSegment));
-		} else if (type == Metadata.SPLITFILE_NONREDUNDANT) {
+		} else if (type == SplitfileAlgorithm.NONREDUNDANT) {
 			browseContent.addChild(createSegmentedBoxV0(pCtx, "data", md.getSplitfileDataKeys(), -1));
 		}
 		return browseBox;
@@ -350,11 +350,11 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		infoContent.addChild("#", "Split file type: ");
 
-		short type = md.getSplitfileType();
+		SplitfileAlgorithm type = md.getSplitfileType();
 
 		switch (type) {
-		case Metadata.SPLITFILE_NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
-		case Metadata.SPLITFILE_ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
+		case NONREDUNDANT: infoContent.addChild("#", "Non redundant"); break;
+		case ONION_STANDARD: infoContent.addChild("#", "FEC Onion standard"); break;
 		default: infoContent.addChild("#", "<unknown>");
 		}
 		infoContent.addChild("#", "\u00a0("+type+")");
@@ -388,7 +388,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			infoContent.addChild("#", "Hashes:");
 			infoContent.addChild("br");
 			for (final HashResult hash : hashes) {
-				infoContent.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + HexUtil.bytesToHex(hash.result));
+				infoContent.addChild("#", "\u00a0\u00a0" + hash.type.name() + ": " + hash.hashAsHex());
 				infoContent.addChild("br");
 			}
 		}
@@ -410,7 +410,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 
 		SplitFileSegmentKeys[] segments;
 		try {
-			segments = md .grabSegmentKeys(null);
+			segments = md .grabSegmentKeys();
 		} catch (FetchException e) {
 			Logger.error(this, "Internal failures: "+e.getMessage(), e);
 			infoContent.addChild("#", "Error: Internal failure while decoding data. Try again (refresh the page).");
@@ -427,7 +427,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		infoContent.addChild("#", "Segment count: " + segments.length);
 		infoContent.addChild("br");
 
-		if (type == Metadata.SPLITFILE_ONION_STANDARD) {
+		if (type == SplitfileAlgorithm.ONION_STANDARD) {
 			infoContent.addChild("#", "Data blocks per segment: " + md.getDataBlocksPerSegment());
 			infoContent.addChild("br");
 			infoContent.addChild("#", "Check blocks per segment: " + md.getCheckBlocksPerSegment());
@@ -435,7 +435,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 			for (int i=0;i<segments.length;i++) {
 				browseContent.addChild(createSegmentedBoxV1(pCtx, i, segments[i]));
 			}
-		} else if (type == Metadata.SPLITFILE_NONREDUNDANT) {
+		} else if (type == SplitfileAlgorithm.NONREDUNDANT) {
 			infoContent.addChild("#", "Data blocks per segment: " + md.getDataBlocksPerSegment());
 			infoContent.addChild("br");
 			for (int i=0;i<segments.length;i++) {
@@ -511,12 +511,12 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		else
 			snooper = new SnoopFirst();
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
-		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
+		FetchWaiter fw = new FetchWaiter((RequestClient)pr.getHLSimpleClient());
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, null, null, null);
 		get.setMetaSnoop(snooper);
 
 		try {
-			get.start(null, pr.getNode().clientCore.clientContext);
+			get.start(pr.getNode().clientCore.clientContext);
 			fw.waitForCompletion();
 		} catch (FetchException e) {
 			if (snooper.getResult() == null) {
@@ -526,7 +526,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 		Metadata result = snooper.getResult();
 		if (result == null) {
-			throw new FetchException(FetchException.INVALID_METADATA, "URI does not point to a split file");
+			throw new FetchException(FetchExceptionMode.INVALID_METADATA, "URI does not point to a split file");
 		}
 		return result;
 	}
@@ -534,12 +534,12 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 	private Metadata splitGet(PluginRespirator pr, FreenetURI uri, int level) throws FetchException {
 		SnoopLevel snooper = new SnoopLevel(level);
 		FetchContext context = pr.getHLSimpleClient().getFetchContext();
-		FetchWaiter fw = new FetchWaiter();
-		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, (RequestClient)pr.getHLSimpleClient(), null, null, null);
+		FetchWaiter fw = new FetchWaiter((RequestClient)pr.getHLSimpleClient());
+		ClientGetter get = new ClientGetter(fw, uri, context, RequestStarter.INTERACTIVE_PRIORITY_CLASS, null, null, null);
 		get.setMetaSnoop(snooper);
 
 		try {
-			get.start(null, pr.getNode().clientCore.clientContext);
+			get.start(pr.getNode().clientCore.clientContext);
 			fw.waitForCompletion();
 		} catch (FetchException e) {
 			if (snooper.lastSplit == null) {
@@ -549,7 +549,7 @@ public class SplitExplorerToadlet extends WebInterfaceToadlet {
 		}
 		Metadata result = snooper.lastSplit;
 		if (result == null) {
-			throw new FetchException(FetchException.INVALID_METADATA, "URI does not point to a split file");
+			throw new FetchException(FetchExceptionMode.INVALID_METADATA, "URI does not point to a split file");
 		}
 		return snooper.lastSplit;
 	}
