@@ -1,0 +1,24 @@
+About.PageTitle=Kulcs Eszköz Csomag - Névjegy
+Config.autoMF=auto manifesztum
+Config.hexWidth=Hexa nézet szélesség
+Config.hexWidthLong=Oszlopok a hexadecimális tartalommegjelenítéshez
+ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.tooltip=alapértelmezett beállítások a KeyUtils-hoz
+Donate.title=Támogatás
+Donate.tooltip=Hogyan támogathat
+Menu.About.title=Névjegy
+Menu.About.tooltip=Információk a Key Utils-ról
+Menu.ExtraCalculator.title=Extra Számológép
+Menu.ExtraCalculator.tooltip=Freenet Extra URI adat létrehozása, feldolgozása
+Menu.FBlobViewer.title=FBlob megtekintő
+Menu.FBlobViewer.tooltip=A FBlob tartalmának megjelenítése
+Menu.KeyConverter.title=Kulcs konvertáló
+Menu.KeyConverter.tooltip=Fájl kulcs CHK-vá konvertálása
+Menu.KeyExplorer.title=Kulcs böngésző
+Menu.KeyExplorer.tooltip=Freenet URI böngészése
+Menu.SiteExplorer.title=Oldal vizsgáló
+Menu.SiteExplorer.tooltip=Oldal manifesztumának vizsgálata
+Menu.SplitExplorer.title=Darabolt vizsgáló
+Menu.SplitExplorer.tooltip=Darabolt fájl vizsgálata
+Plugin.Category.tooltip=Segédeszköz készlet a Freenet URI és mások debuggolására
+plugins.KeyUtils.KeyUtilsPlugin=Key Utils alapértelmezett beállítások
+End
