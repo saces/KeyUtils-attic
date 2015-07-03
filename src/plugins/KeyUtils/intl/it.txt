@@ -4,7 +4,6 @@ Config.autoMFLong=apri la chiave come manifesto/sito se possibile.
 Config.hexWidth=Ampiezza di veduta dell' Hex
 Config.hexWidthLong=Veduta delle colonne per il contenuto esadecimale
 Config.multilevel=analisi nei metadati a più livelli
-Config.multilevelLong=
 Config.recursive=analisi del manifesto ricorsivo
 Config.recursiveLong=questo di solito include ulteriori recuperi
 ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.label=Chiave di Utility

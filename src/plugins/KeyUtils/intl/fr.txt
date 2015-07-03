@@ -4,7 +4,6 @@ Config.autoMFLong=Ouvrir la clé comme manifeste/site si possible.
 Config.hexWidth=Largeur de la vue hexa
 Config.hexWidthLong=Colonnes pour la vue hexadécimale du contenu
 Config.multilevel=analyser en métadonnées étagées
-Config.multilevelLong=
 Config.recursive=analyser le manifeste récursivement
 Config.recursiveLong=ceci comprend généralement d'autres extractions 
 ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.label=UtilClé

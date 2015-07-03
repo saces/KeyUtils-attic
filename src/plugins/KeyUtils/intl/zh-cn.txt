@@ -4,7 +4,6 @@ Config.autoMFLong=如果可能，打开键值为清单/站点。
 Config.hexWidth=十六进制视图宽度
 Config.hexWidthLong=十六进制内容视图的列
 Config.multilevel=解析成多级元数据
-Config.multilevelLong=
 Config.recursive=解析清单递归
 Config.recursiveLong=这通常包括进一步的获取
 ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.label=键值工具
