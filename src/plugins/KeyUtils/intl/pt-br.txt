@@ -26,10 +26,10 @@ Menu.KeyExplorer.title=Explorador de chaves
 Menu.KeyExplorer.tooltip=Explorar um URI
 Menu.SiteExplorer.title=Explorador de sites
 Menu.SiteExplorer.tooltip=Explorar um manifesto de site
-Menu.SplitExplorer.title=Explorador de fracionamentos
-Menu.SplitExplorer.tooltip=Explorar arquivo fracionado
+Menu.SplitExplorer.title=Explorador de arquivos fracionados
+Menu.SplitExplorer.tooltip=Explore um arquivo fracionado
 Plugin.Category.tooltip=Coleção de ferramentas para depuração de URIs e mais...
-plugins.KeyUtils.KeyUtilsPlugin=Especificações pré-definidas do Utilitário de Chaves
+plugins.KeyUtils.KeyUtilsPlugin=especificações pré-definidas do Utilitário de Chaves
 SiteExplorer.PageTitle=Suíte de Utilitários de Chaves - Explorador de Sites
-SplitExplorer.PageTitle=Suíte de Utilitários de Chaves - Explorador de Fracionamentos
+SplitExplorer.PageTitle=Utilitário de Chaves - Explorador de arquivos fracionados
 End
