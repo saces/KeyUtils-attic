@@ -1,0 +1,21 @@
+About.PageTitle=Nøkkelverktøysbod - Om
+Config.multilevel=fortolk til flernivå metadata
+Config.recursiveLong=dette betyr vanligvis ytterligere innhenting
+ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.label=Nøkkelverktøy
+ConfigToadlet.plugins.KeyUtils.KeyUtilsPlugin.tooltip=forvalgte innstillinger for Nøkkelverktøy
+Donate.title=Doner
+Donate.tooltip=Hvordan donere
+ExtraCalculator.PageTitel=Nøkkelverktøysbod - Ekstra kalkulator
+FBlobViewer.PageTitle=Nøkkelverktøysbod - FBlob-framviser
+KeyKonverter.PageTitle=Nøkkelvektøysbod - Nøkkelkonveringsverktøy
+Menu.About.title=Om
+Menu.ExtraCalculator.title=Ekstra kalkulator
+Menu.FBlobViewer.title=FBlob-framviser
+Menu.FBlobViewer.tooltip=Vis innholdet i en FBlob
+Menu.KeyConverter.title=Nøkkel-konverteringsverktøy
+Menu.KeyConverter.tooltip=Konverter en nøkkelfil til CHK
+Menu.KeyExplorer.title=Nøkkel-utforsker
+Menu.KeyExplorer.tooltip=Utforsk en Freenet-nettadresse
+Menu.SiteExplorer.title=Side-utforsker
+Plugin.Category.tooltip=Verktøyskasse for å feilsøke Freenet-nettadresser og mere til...
+End
