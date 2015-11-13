@@ -80,11 +80,26 @@ public class AboutToadlet extends WebInterfaceToadlet {
 		HTMLNode infoBox = box.outer;
 		HTMLNode infoContent = box.content;
 
-		infoContent.addChild("#", "Report bugs at github (");
-		HTMLNode buglink = new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=https://github.com/saces/KeyUtils/issues", "https://github.com/saces/KeyUtils/issues");
-		infoContent.addChild(buglink);
-		infoContent.addChild("#", ") or report them in sone ");
-		infoContent.addChild(new HTMLNode("nobr", "@sone://MYLAnId-ZEyXhDGGbYOa1gOtkZZrFNTXjFl1dibLj9E"));
+		if (pCtx.pluginRespirator.isOfficialPlugin()) {
+			infoContent.addChild("#", "Report bugs at the Freenet butracker (");
+			HTMLNode buglink = new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=https://bugs.freenetproject.org/view_all_bug_page.php?project_id=16", "https://bugs.freenetproject.org");
+			infoContent.addChild(buglink);
+			infoContent.addChild("#", ")");
+		} else {
+			HTMLNode p = new HTMLNode("p");
+			p.addChild("#", "If you got this plugin from an official source (from freenetproject.org) report bugs at the Freenet butracker (");
+			HTMLNode buglink = new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=https://bugs.freenetproject.org/view_all_bug_page.php?project_id=16", "https://bugs.freenetproject.org");
+			p.addChild(buglink);
+			p.addChild("#", ")");
+			infoContent.addChild(p);
+			p = new HTMLNode("p");
+			p.addChild("#", "Report bugs at github (");
+			buglink = new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=https://github.com/saces/KeyUtils/issues", "https://github.com/saces/KeyUtils/issues");
+			p.addChild(buglink);
+			p.addChild("#", ") or report them in sone ");
+			p.addChild(new HTMLNode("nobr", "@sone://MYLAnId-ZEyXhDGGbYOa1gOtkZZrFNTXjFl1dibLj9E"));
+			infoContent.addChild(p);
+		}
 		return infoBox;
 	}
 
