@@ -35,7 +35,6 @@ import freenet.client.async.ClientGetState;
 import freenet.client.async.ClientGetWorkerThread;
 import freenet.client.async.ClientGetter;
 import freenet.client.async.GetCompletionCallback;
-import freenet.client.async.KeyListenerConstructionException;
 import freenet.client.async.SnoopBucket;
 import freenet.client.async.SplitFileFetcher;
 import freenet.client.async.StreamGenerator;
@@ -119,8 +118,7 @@ public class KeyExplorerUtils {
 		return snooper.result;
 	}
 
-	public static FetchResult splitGet(PluginRespirator pr, Metadata metadata) throws FetchException, MetadataParseException,
-			KeyListenerConstructionException {
+	public static FetchResult splitGet(PluginRespirator pr, Metadata metadata) throws FetchException, MetadataParseException {
 
 		if (!metadata.isSplitfile()) {
 			throw new MetadataParseException("uri did not point to splitfile");
@@ -324,7 +322,7 @@ public class KeyExplorerUtils {
 		return fw.waitForCompletion();
 	}
 
-	public static Metadata splitManifestGet(PluginRespirator pr, Metadata metadata) throws MetadataParseException, IOException, FetchException, KeyListenerConstructionException {
+	public static Metadata splitManifestGet(PluginRespirator pr, Metadata metadata) throws MetadataParseException, IOException, FetchException {
 		FetchResult res = splitGet(pr, metadata);
 		return Metadata.construct(res.asBucket());
 	}
@@ -363,11 +361,7 @@ public class KeyExplorerUtils {
 
 	public static Metadata tarManifestGet(PluginRespirator pr, Metadata md, String metaName) throws FetchException, MetadataParseException, IOException {
 		FetchResult fr;
-		try {
-			fr = splitGet(pr, md);
-		} catch (KeyListenerConstructionException e) {
-			throw new FetchException(FetchExceptionMode.INTERNAL_ERROR, e);
-		}
+		fr = splitGet(pr, md);
 		return internalTarManifestGet(fr.asBucket(), metaName);
 	}
 
@@ -462,14 +456,11 @@ public class KeyExplorerUtils {
 		} catch (FetchException e) {
 			errors.add(e.getMessage());
 			e.printStackTrace();
-		} catch (KeyListenerConstructionException e) {
-			errors.add(e.getMessage());
-			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public static byte[] unrollMetadata(PluginRespirator pluginRespirator, List<String> errors, Metadata md) throws MalformedURLException, IOException, FetchException, MetadataParseException, KeyListenerConstructionException {
+	public static byte[] unrollMetadata(PluginRespirator pluginRespirator, List<String> errors, Metadata md) throws MalformedURLException, IOException, FetchException, MetadataParseException {
 	
 		if (!md.isSplitfile()) {
 			errors.add("Unsupported Metadata: Not a Splitfile");

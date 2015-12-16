@@ -18,7 +18,6 @@ import freenet.client.FetchException;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.client.ArchiveManager.ARCHIVE_TYPE;
-import freenet.client.async.KeyListenerConstructionException;
 import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
@@ -262,9 +261,6 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 			errors.add("IO Error: " + e.getMessage());
 		} catch (MetadataParseException e) {
 			errors.add("MetadataParseException");
-		} catch (KeyListenerConstructionException e) {
-			Logger.error(this, "Hu?", e);
-			errors.add("Internal Error: " + e.getMessage());
 		}
 
 		if (errors.size() > 0) {
@@ -380,8 +376,6 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 					err = e;
 				} catch (FetchException e) {
 					err = e;
-				} catch (KeyListenerConstructionException e) {
-					err = e;
 				}
 				htmlTable.addChild(makeErrorRow(err));
 			}
@@ -419,8 +413,6 @@ public class SiteExplorerToadlet extends WebInterfaceToadlet {
 					} catch (IOException e) {
 						err = e;
 					} catch (FetchException e) {
-						err = e;
-					} catch (KeyListenerConstructionException e) {
 						err = e;
 					}
 					htmlTable.addChild(makeErrorRow(err));

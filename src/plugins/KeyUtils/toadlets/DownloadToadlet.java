@@ -16,7 +16,6 @@ import freenet.client.DefaultMIMETypes;
 import freenet.client.FetchException;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
-import freenet.client.async.KeyListenerConstructionException;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
@@ -122,9 +121,6 @@ public class DownloadToadlet extends InvisibleWebInterfaceToadlet {
 			errors.add(e.getMessage());
 			e.printStackTrace();
 		} catch (FetchException e) {
-			errors.add(e.getMessage());
-			e.printStackTrace();
-		} catch (KeyListenerConstructionException e) {
 			errors.add(e.getMessage());
 			e.printStackTrace();
 		}

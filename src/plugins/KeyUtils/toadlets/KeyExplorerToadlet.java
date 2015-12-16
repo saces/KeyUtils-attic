@@ -23,7 +23,6 @@ import freenet.client.InsertContext.CompatibilityMode;
 import freenet.client.Metadata;
 import freenet.client.MetadataParseException;
 import freenet.client.ArchiveManager.ARCHIVE_TYPE;
-import freenet.client.async.KeyListenerConstructionException;
 import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.RedirectException;
@@ -190,9 +189,6 @@ public class KeyExplorerToadlet extends WebInterfaceToadlet {
 			errors.add("Metadata Parse Error: " + e.getMessage());
 		} catch (FetchException e) {
 			errors.add("Get failed (" + e.mode + "): " + e.getMessage());
-		} catch (KeyListenerConstructionException e) {
-			Logger.error(this, "Hu?", e);
-			errors.add("Internal Error: " + e.getMessage());
 		} finally {
 			if (getresult != null)
 				getresult.free();
