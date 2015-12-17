@@ -80,11 +80,22 @@ public class AboutToadlet extends WebInterfaceToadlet {
 		HTMLNode infoBox = box.outer;
 		HTMLNode infoContent = box.content;
 
-		infoContent.addChild("#", "Report bugs at github (");
-		HTMLNode buglink = new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=https://github.com/saces/KeyUtils/issues", "https://github.com/saces/KeyUtils/issues");
-		infoContent.addChild(buglink);
-		infoContent.addChild("#", ") or report them in sone ");
-		infoContent.addChild(new HTMLNode("nobr", "@sone://MYLAnId-ZEyXhDGGbYOa1gOtkZZrFNTXjFl1dibLj9E"));
+		HTMLNode p = new HTMLNode("p");
+		p.addChild("#", "Report bugs and wishes at the Freenet butracker (");
+		HTMLNode buglink = new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=https://bugs.freenetproject.org/view_all_bug_page.php?project_id=16", "https://bugs.freenetproject.org");
+		p.addChild(buglink);
+		p.addChild("#", "),");
+		infoContent.addChild(p);
+		p = new HTMLNode("p");
+		p.addChild("#", "or at Github (");
+		buglink = new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=https://github.com/saces/KeyUtils/issues", "https://github.com/saces/KeyUtils/issues");
+		p.addChild(buglink);
+		p.addChild("#", ")");
+		infoContent.addChild(p);
+		p = new HTMLNode("p");
+		p.addChild("#", "or report them in sone ");
+		p.addChild(new HTMLNode("nobr", "@sone://MYLAnId-ZEyXhDGGbYOa1gOtkZZrFNTXjFl1dibLj9E"));
+		infoContent.addChild(p);
 		return infoBox;
 	}
 
